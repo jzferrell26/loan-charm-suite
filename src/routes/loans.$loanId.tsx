@@ -106,7 +106,7 @@ function DealDetail() {
     <div className="bg-muted/30 min-h-[calc(100vh-3.5rem)]">
       {/* Top strip: loan # / breadcrumb / metrics */}
       <div className="bg-card border-b">
-        <div className="flex items-center gap-4 px-4 h-14">
+        <div className="flex items-center gap-3 px-4 py-2 min-h-14 overflow-x-auto">
           <Link
             to="/loans"
             className="inline-flex items-center justify-center h-8 w-8 rounded-md border hover:bg-muted text-muted-foreground"
