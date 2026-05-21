@@ -59,24 +59,37 @@ function DealDetail() {
   const [activeView, setActiveView] = useState<"overview" | "notes" | "documents">("overview");
   const [noteText, setNoteText] = useState("");
 
+  // Editable financial state — autocalculates across fields
+  const [purchasePrice, setPurchasePrice] = useState(loan?.purchasePrice ?? 0);
+  const [appraisedValue, setAppraisedValue] = useState(loan?.arv ?? loan?.purchasePrice ?? 0);
+  const [baseLoanAmount, setBaseLoanAmount] = useState(loan?.loanAmount ?? 0);
+  const [noteRate, setNoteRate] = useState(loan?.interestRate ?? 0);
+  const [termMonths, setTermMonths] = useState(loan?.termMonths ?? 360);
+
   if (!loan) throw notFound();
 
   const primary = loan.borrowers[0];
   const fico = 660;
   const dti = "0.00% / 0.00%";
-  const ftc = Math.round(loan.loanAmount * 0.067);
-  const downPayment = Math.max(0, loan.purchasePrice - loan.loanAmount);
-  const downPct = loan.purchasePrice
-    ? ((downPayment / loan.purchasePrice) * 100).toFixed(3)
-    : "0.000";
+  const downPayment = Math.max(0, purchasePrice - baseLoanAmount);
+  const downPct = purchasePrice ? (downPayment / purchasePrice) * 100 : 0;
+  const ltv = appraisedValue ? (baseLoanAmount / appraisedValue) * 100 : 0;
+  const ftc = Math.round(baseLoanAmount * 0.067);
 
   const proposed = useMemo(() => {
-    const r = loan.interestRate / 100 / 12;
-    const n = loan.termMonths || 360;
-    const p = loan.loanAmount;
+    const r = noteRate / 100 / 12;
+    const n = termMonths || 360;
+    const p = baseLoanAmount;
     const m = r === 0 ? p / n : (p * r) / (1 - Math.pow(1 + r, -n));
     return Math.round(m * 100) / 100;
-  }, [loan.interestRate, loan.termMonths, loan.loanAmount]);
+  }, [noteRate, termMonths, baseLoanAmount]);
+
+  const onDownPaymentChange = (v: number) =>
+    setBaseLoanAmount(Math.max(0, purchasePrice - v));
+  const onLtvChange = (v: number) => {
+    if (!appraisedValue) return;
+    setBaseLoanAmount(Math.round((v / 100) * appraisedValue));
+  };
 
   const handleStage = (newStage: Stage) => {
     updateStage(loan.id, newStage);
