@@ -64,7 +64,11 @@ function DealDetail() {
   const [appraisedValue, setAppraisedValue] = useState(loan?.arv ?? loan?.purchasePrice ?? 0);
   const [baseLoanAmount, setBaseLoanAmount] = useState(loan?.loanAmount ?? 0);
   const [noteRate, setNoteRate] = useState(loan?.interestRate ?? 0);
-  const [termMonths, setTermMonths] = useState(loan?.termMonths ?? 360);
+  const [termMonths, setTermMonths] = useState(360);
+  const [hoi, setHoi] = useState(0);
+  const [supplemental, setSupplemental] = useState(0);
+  const [propertyTaxes, setPropertyTaxes] = useState(0);
+  const [associationDues, setAssociationDues] = useState(0);
 
   if (!loan) throw notFound();
 
@@ -369,7 +373,17 @@ function DealDetail() {
                     {tab === "title" && <TitleInfoForm />}
                   </div>
                   <div className="space-y-5">
-                    <ProposedPayment monthly={proposed} />
+                    <ProposedPayment
+                      monthly={proposed}
+                      hoi={hoi}
+                      supplemental={supplemental}
+                      propertyTaxes={propertyTaxes}
+                      associationDues={associationDues}
+                      onHoiChange={setHoi}
+                      onSupplementalChange={setSupplemental}
+                      onPropertyTaxesChange={setPropertyTaxes}
+                      onAssociationDuesChange={setAssociationDues}
+                    />
                     <PurchaseCredits />
                   </div>
                 </div>
@@ -1074,7 +1088,28 @@ function Ratio({ label, value }: { label: string; value: string }) {
 
 /* ----------------------- right column ----------------------- */
 
-function ProposedPayment({ monthly }: { monthly: number }) {
+function ProposedPayment({
+  monthly,
+  hoi,
+  supplemental,
+  propertyTaxes,
+  associationDues,
+  onHoiChange,
+  onSupplementalChange,
+  onPropertyTaxesChange,
+  onAssociationDuesChange,
+}: {
+  monthly: number;
+  hoi: number;
+  supplemental: number;
+  propertyTaxes: number;
+  associationDues: number;
+  onHoiChange: (n: number) => void;
+  onSupplementalChange: (n: number) => void;
+  onPropertyTaxesChange: (n: number) => void;
+  onAssociationDuesChange: (n: number) => void;
+}) {
+  const total = monthly + hoi + supplemental + propertyTaxes + associationDues;
   return (
     <div className="border rounded-md bg-card">
       <div className="flex items-center justify-between px-4 py-3 border-b">
@@ -1093,15 +1128,15 @@ function ProposedPayment({ monthly }: { monthly: number }) {
         </div>
         <PayRow label="First Mortgage" monthly={`$${monthly.toFixed(2)}`} />
         <PayRow label="Other Financing" />
-        <PayRow label="HOI" error />
-        <PayRow label="Supplemental" />
-        <PayRow label="Property Taxes" error />
+        <PayRow label="HOI" error={hoi === 0} editableMonthly value={hoi} onChange={onHoiChange} />
+        <PayRow label="Supplemental" editableMonthly value={supplemental} onChange={onSupplementalChange} />
+        <PayRow label="Property Taxes" error={propertyTaxes === 0} editableMonthly value={propertyTaxes} onChange={onPropertyTaxesChange} />
         <PayRow label="MI" calc="PPE" monthly="$0.00" />
-        <PayRow label="Association Dues" value="$0" monthly="$0.00" />
+        <PayRow label="Association Dues" editableMonthly value={associationDues} onChange={onAssociationDuesChange} />
         <PayRow label="Other" value="$0" monthly="$0.00" />
         <div className="grid grid-cols-[1.4fr_0.6fr_0.7fr_0.8fr_0.8fr] gap-2 px-3 py-2 border-t font-semibold text-sm">
           <span className="col-span-4">Total PITI</span>
-          <span className="text-right tabular-nums">${monthly.toFixed(2)}</span>
+          <span className="text-right tabular-nums">${total.toFixed(2)}</span>
         </div>
       </div>
     </div>
@@ -1114,12 +1149,16 @@ function PayRow({
   calc,
   value,
   monthly,
+  editableMonthly,
+  onChange,
 }: {
   label: string;
   error?: boolean;
   calc?: string;
-  value?: string;
+  value?: string | number;
   monthly?: string;
+  editableMonthly?: boolean;
+  onChange?: (n: number) => void;
 }) {
   return (
     <div className="grid grid-cols-[1.4fr_0.6fr_0.7fr_0.8fr_0.8fr] gap-2 px-3 py-2 border-b text-xs items-center">
@@ -1131,8 +1170,19 @@ function PayRow({
         {calc ? <span className="text-[var(--link)]">{calc}</span> : "No"}
       </span>
       <span className="text-muted-foreground">Monthly</span>
-      <span className="text-muted-foreground">{value ?? "$"}</span>
-      <span className="text-right tabular-nums">{monthly ?? "--"}</span>
+      <span className="text-muted-foreground">{typeof value === "string" ? value : "$"}</span>
+      {editableMonthly && onChange ? (
+        <input
+          type="number"
+          min={0}
+          step="0.01"
+          value={typeof value === "number" ? value : 0}
+          onChange={(e) => onChange(Number(e.target.value) || 0)}
+          className="h-6 w-full rounded border bg-card px-1.5 text-right text-xs tabular-nums focus:outline-none focus:ring-1 focus:ring-ring"
+        />
+      ) : (
+        <span className="text-right tabular-nums">{monthly ?? "--"}</span>
+      )}
     </div>
   );
 }
