@@ -4,6 +4,7 @@ import { useStore } from "@/lib/store";
 import { groupOfStage, type StageGroup } from "@/lib/mock-data";
 import { Avatar } from "@/components/Avatar";
 import { StageBadge } from "@/components/StageBadge";
+import { BorrowerHoverCard } from "@/components/BorrowerHoverCard";
 import { currency, timeAgo } from "@/lib/format";
 import { Plus, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -90,34 +91,54 @@ function LoansPage() {
           <ul>
             {pageRows.map((l) => (
               <li key={l.id}>
-                <Link
-                  to="/loans/$loanId"
-                  params={{ loanId: l.id }}
-                  className="grid grid-cols-[2fr_1.6fr_0.8fr_1.6fr_1.2fr_1fr_140px] gap-3 px-6 py-3.5 items-center border-b hover:bg-muted/40 transition-colors text-sm"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <Avatar name={l.borrowerName} size={32} />
-                    <div className="min-w-0">
-                      <div className="text-[var(--link)] font-medium truncate">
-                        {l.borrowerName}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {l.loanNumber}
-                      </div>
-                      <div className="text-xs text-muted-foreground truncate">
-                        {l.propertyAddress}, {l.propertyCity}, {l.propertyState}
+                <div className="grid grid-cols-[2fr_1.6fr_0.8fr_1.6fr_1.2fr_1fr_140px] gap-3 px-6 py-3.5 items-center border-b hover:bg-muted/40 transition-colors text-sm">
+                  <BorrowerHoverCard loanNumber={l.loanNumber} borrowers={l.borrowers}>
+                    <div className="flex items-center gap-3 min-w-0 cursor-pointer">
+                      <Avatar name={l.borrowerName} size={32} />
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <Link
+                            to="/loans/$loanId"
+                            params={{ loanId: l.id }}
+                            className="text-[var(--link)] font-medium truncate hover:underline"
+                          >
+                            {l.borrowerName}
+                          </Link>
+                          {l.borrowers.length > 1 && (
+                            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                              +{l.borrowers.length - 1}
+                            </span>
+                          )}
+                          {l.borrowers.some((b) => b.pending) && (
+                            <span className="text-orange-500 leading-none">•</span>
+                          )}
+                        </div>
+                        <Link
+                          to="/loans/$loanId"
+                          params={{ loanId: l.id }}
+                          className="text-xs text-muted-foreground hover:underline block"
+                        >
+                          {l.loanNumber}
+                        </Link>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {l.propertyAddress}, {l.propertyCity}, {l.propertyState}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="space-y-1.5">
+                  </BorrowerHoverCard>
+                  <Link
+                    to="/loans/$loanId"
+                    params={{ loanId: l.id }}
+                    className="space-y-1.5"
+                  >
                     <StageBadge stage={l.stage} />
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Tracker on={l.trackers.itp} label="ITP" />
                       <Tracker on={l.trackers.appraisal} label="Appraisal" />
                       <Tracker on={l.trackers.title} label="Title" />
                     </div>
-                  </div>
-                  <div>
+                  </Link>
+                  <Link to="/loans/$loanId" params={{ loanId: l.id }}>
                     <span
                       className={cn(
                         "inline-flex items-center justify-center min-w-[28px] h-6 rounded-md text-xs font-medium px-2",
@@ -133,28 +154,40 @@ function LoansPage() {
                         {l.conditionsPending} Conditions
                       </div>
                     )}
-                  </div>
-                  <div className="min-w-0">
+                  </Link>
+                  <Link
+                    to="/loans/$loanId"
+                    params={{ loanId: l.id }}
+                    className="min-w-0 block"
+                  >
                     <div className="truncate">{l.propertyType}</div>
                     <div className="text-xs text-muted-foreground truncate">
                       {l.lender}
                     </div>
-                  </div>
-                  <div>
+                  </Link>
+                  <Link to="/loans/$loanId" params={{ loanId: l.id }} className="block">
                     <div className="font-medium tabular-nums">
                       {currency(l.loanAmount)}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       LTV {l.ltv.toFixed(1)}%
                     </div>
-                  </div>
-                  <div className="text-xs text-muted-foreground">
+                  </Link>
+                  <Link
+                    to="/loans/$loanId"
+                    params={{ loanId: l.id }}
+                    className="text-xs text-muted-foreground block"
+                  >
                     {timeAgo(l.lastUpdated)}
-                  </div>
-                  <div className="text-xs text-muted-foreground text-right">
+                  </Link>
+                  <Link
+                    to="/loans/$loanId"
+                    params={{ loanId: l.id }}
+                    className="text-xs text-muted-foreground text-right block"
+                  >
                     Closing {l.closingDate ? new Date(l.closingDate).toLocaleDateString() : "N/A"}
-                  </div>
-                </Link>
+                  </Link>
+                </div>
               </li>
             ))}
             {pageRows.length === 0 && (

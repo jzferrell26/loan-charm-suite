@@ -35,11 +35,22 @@ export function groupOfStage(s: Stage): StageGroup {
   return "Prospect";
 }
 
+export type LoanBorrower = {
+  borrowerId: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: "Primary" | "Co-Borrower";
+  status: string; // e.g. "Needs In-Review · Full App"
+  pending?: boolean;
+};
+
 export type Loan = {
   id: string;
   loanNumber: string;
   borrowerId: string;
   borrowerName: string;
+  borrowers: LoanBorrower[];
   propertyAddress: string;
   propertyCity: string;
   propertyState: string;
@@ -137,11 +148,35 @@ export const initialLoans: Loan[] = Array.from({ length: 15 }, (_, i) => {
   const arv = purchasePrice + Math.round(Math.random() * 200000);
   const [city, state, zip] = cities[i % cities.length];
   const streetNum = 100 + i * 37;
+  const co = i % 3 === 0 ? initialBorrowers[(i + 1) % initialBorrowers.length] : null;
+  const primaryStatuses = ["Needs In-Review · Full App", "Submitted · Full App", "Active · Full App"];
   return {
     id: `L${2000 + i}`,
     loanNumber: String(16600000 + i * 137),
     borrowerId: b.id,
     borrowerName: `${b.firstName} ${b.lastName}`,
+    borrowers: [
+      {
+        borrowerId: b.id,
+        name: `${b.firstName} ${b.lastName}`,
+        email: b.email,
+        phone: b.phone,
+        role: "Primary" as const,
+        status: primaryStatuses[i % primaryStatuses.length],
+        pending: i % 4 === 0,
+      },
+      ...(co
+        ? [{
+            borrowerId: co.id,
+            name: `${co.firstName} ${co.lastName}`,
+            email: co.email,
+            phone: co.phone,
+            role: "Co-Borrower" as const,
+            status: "Needs Pending · Full App",
+            pending: true,
+          }]
+        : []),
+    ],
     propertyAddress: `${streetNum} ${["Oak", "Maple", "Pine", "Cedar", "Elm"][i % 5]} ${["St", "Ave", "Rd", "Ln"][i % 4]}`,
     propertyCity: city,
     propertyState: state,
