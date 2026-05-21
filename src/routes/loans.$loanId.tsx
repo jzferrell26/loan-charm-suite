@@ -161,6 +161,21 @@ function DealDetail() {
           </div>
 
           <div className="ml-auto flex items-center gap-1.5">
+            {dirty && (
+              <span className="text-xs text-orange-600 mr-1">Unsaved changes</span>
+            )}
+            <button
+              onClick={handleSave}
+              disabled={!dirty}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium",
+                dirty
+                  ? "bg-[var(--link)] text-white hover:opacity-90"
+                  : "bg-muted text-muted-foreground cursor-not-allowed"
+              )}
+            >
+              Save Changes
+            </button>
             <IconChip aria-label="Refresh" onClick={() => toast.message("Refreshed")}>
               <RefreshCw className="h-3.5 w-3.5" />
             </IconChip>
