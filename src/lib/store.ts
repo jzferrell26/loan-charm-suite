@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 import {
   initialBorrowers,
   initialContacts,
@@ -45,7 +46,9 @@ function fireStageWebhook(payload: {
   }
 }
 
-export const useStore = create<State>((set, get) => ({
+export const useStore = create<State>()(
+  persist(
+    (set, get) => ({
   loans: initialLoans,
   borrowers: initialBorrowers,
   contacts: initialContacts,
@@ -117,4 +120,10 @@ export const useStore = create<State>((set, get) => ({
   addLoan: (loan) => set((s) => ({ loans: [loan, ...s.loans] })),
   addBorrower: (b) => set((s) => ({ borrowers: [b, ...s.borrowers] })),
   addContact: (c) => set((s) => ({ contacts: [c, ...s.contacts] })),
-}));
+    }),
+    {
+      name: "loan-store-v1",
+      storage: createJSONStorage(() => localStorage),
+    }
+  )
+);
