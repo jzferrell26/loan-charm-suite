@@ -10,115 +10,42 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as ContactsRouteImport } from './routes/contacts'
-import { Route as BorrowersRouteImport } from './routes/borrowers'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as LoansIndexRouteImport } from './routes/loans.index'
-import { Route as LoansNewRouteImport } from './routes/loans.new'
-import { Route as LoansLoanIdRouteImport } from './routes/loans.$loanId'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ContactsRoute = ContactsRouteImport.update({
-  id: '/contacts',
-  path: '/contacts',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BorrowersRoute = BorrowersRouteImport.update({
-  id: '/borrowers',
-  path: '/borrowers',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoansIndexRoute = LoansIndexRouteImport.update({
-  id: '/loans/',
-  path: '/loans/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoansNewRoute = LoansNewRouteImport.update({
-  id: '/loans/new',
-  path: '/loans/new',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoansLoanIdRoute = LoansLoanIdRouteImport.update({
-  id: '/loans/$loanId',
-  path: '/loans/$loanId',
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/borrowers': typeof BorrowersRoute
-  '/contacts': typeof ContactsRoute
+  '/': typeof AuthenticatedRoute
   '/login': typeof LoginRoute
-  '/loans/$loanId': typeof LoansLoanIdRoute
-  '/loans/new': typeof LoansNewRoute
-  '/loans/': typeof LoansIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/borrowers': typeof BorrowersRoute
-  '/contacts': typeof ContactsRoute
+  '/': typeof AuthenticatedRoute
   '/login': typeof LoginRoute
-  '/loans/$loanId': typeof LoansLoanIdRoute
-  '/loans/new': typeof LoansNewRoute
-  '/loans': typeof LoansIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/borrowers': typeof BorrowersRoute
-  '/contacts': typeof ContactsRoute
+  '/_authenticated': typeof AuthenticatedRoute
   '/login': typeof LoginRoute
-  '/loans/$loanId': typeof LoansLoanIdRoute
-  '/loans/new': typeof LoansNewRoute
-  '/loans/': typeof LoansIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/borrowers'
-    | '/contacts'
-    | '/login'
-    | '/loans/$loanId'
-    | '/loans/new'
-    | '/loans/'
+  fullPaths: '/' | '/login'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/borrowers'
-    | '/contacts'
-    | '/login'
-    | '/loans/$loanId'
-    | '/loans/new'
-    | '/loans'
-  id:
-    | '__root__'
-    | '/'
-    | '/borrowers'
-    | '/contacts'
-    | '/login'
-    | '/loans/$loanId'
-    | '/loans/new'
-    | '/loans/'
+  to: '/' | '/login'
+  id: '__root__' | '/_authenticated' | '/login'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  BorrowersRoute: typeof BorrowersRoute
-  ContactsRoute: typeof ContactsRoute
+  AuthenticatedRoute: typeof AuthenticatedRoute
   LoginRoute: typeof LoginRoute
-  LoansLoanIdRoute: typeof LoansLoanIdRoute
-  LoansNewRoute: typeof LoansNewRoute
-  LoansIndexRoute: typeof LoansIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -130,60 +57,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/contacts': {
-      id: '/contacts'
-      path: '/contacts'
-      fullPath: '/contacts'
-      preLoaderRoute: typeof ContactsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/borrowers': {
-      id: '/borrowers'
-      path: '/borrowers'
-      fullPath: '/borrowers'
-      preLoaderRoute: typeof BorrowersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/loans/': {
-      id: '/loans/'
-      path: '/loans'
-      fullPath: '/loans/'
-      preLoaderRoute: typeof LoansIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/loans/new': {
-      id: '/loans/new'
-      path: '/loans/new'
-      fullPath: '/loans/new'
-      preLoaderRoute: typeof LoansNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/loans/$loanId': {
-      id: '/loans/$loanId'
-      path: '/loans/$loanId'
-      fullPath: '/loans/$loanId'
-      preLoaderRoute: typeof LoansLoanIdRouteImport
+      preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  BorrowersRoute: BorrowersRoute,
-  ContactsRoute: ContactsRoute,
+  AuthenticatedRoute: AuthenticatedRoute,
   LoginRoute: LoginRoute,
-  LoansLoanIdRoute: LoansLoanIdRoute,
-  LoansNewRoute: LoansNewRoute,
-  LoansIndexRoute: LoansIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
