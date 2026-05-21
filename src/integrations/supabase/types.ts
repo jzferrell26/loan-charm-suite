@@ -14,7 +14,305 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      borrowers: {
+        Row: {
+          address_line: string | null
+          borrower_sequence: number
+          city: string | null
+          created_at: string
+          dob: string | null
+          email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          loan_id: string
+          marital_status: string | null
+          phone: string | null
+          ssn: string | null
+          state: string | null
+          updated_at: string
+          zip: string | null
+        }
+        Insert: {
+          address_line?: string | null
+          borrower_sequence: number
+          city?: string | null
+          created_at?: string
+          dob?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          loan_id: string
+          marital_status?: string | null
+          phone?: string | null
+          ssn?: string | null
+          state?: string | null
+          updated_at?: string
+          zip?: string | null
+        }
+        Update: {
+          address_line?: string | null
+          borrower_sequence?: number
+          city?: string | null
+          created_at?: string
+          dob?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          loan_id?: string
+          marital_status?: string | null
+          phone?: string | null
+          ssn?: string | null
+          state?: string | null
+          updated_at?: string
+          zip?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "borrowers_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "loans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contacts: {
+        Row: {
+          address: string | null
+          company_name: string | null
+          contact_type: string | null
+          created_at: string
+          email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          company_name?: string | null
+          contact_type?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          company_name?: string | null
+          contact_type?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      loans: {
+        Row: {
+          arive_loan_id: string | null
+          arv: number | null
+          created_at: string
+          down_payment: number | null
+          ghl_opportunity_id: string | null
+          id: string
+          interest_rate: number | null
+          lender_name: string | null
+          loan_amount: number | null
+          loan_number: string | null
+          loan_purpose: string | null
+          loan_term_months: number | null
+          loan_type: string | null
+          ltv: number | null
+          maturity_date: string | null
+          origination_fee: number | null
+          points: number | null
+          purchase_price: number | null
+          stage: string
+          updated_at: string
+        }
+        Insert: {
+          arive_loan_id?: string | null
+          arv?: number | null
+          created_at?: string
+          down_payment?: number | null
+          ghl_opportunity_id?: string | null
+          id?: string
+          interest_rate?: number | null
+          lender_name?: string | null
+          loan_amount?: number | null
+          loan_number?: string | null
+          loan_purpose?: string | null
+          loan_term_months?: number | null
+          loan_type?: string | null
+          ltv?: number | null
+          maturity_date?: string | null
+          origination_fee?: number | null
+          points?: number | null
+          purchase_price?: number | null
+          stage?: string
+          updated_at?: string
+        }
+        Update: {
+          arive_loan_id?: string | null
+          arv?: number | null
+          created_at?: string
+          down_payment?: number | null
+          ghl_opportunity_id?: string | null
+          id?: string
+          interest_rate?: number | null
+          lender_name?: string | null
+          loan_amount?: number | null
+          loan_number?: string | null
+          loan_purpose?: string | null
+          loan_term_months?: number | null
+          loan_type?: string | null
+          ltv?: number | null
+          maturity_date?: string | null
+          origination_fee?: number | null
+          points?: number | null
+          purchase_price?: number | null
+          stage?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      notes: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          loan_id: string
+          note_text: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          loan_id: string
+          note_text: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          loan_id?: string
+          note_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notes_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "loans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      properties: {
+        Row: {
+          address_line: string | null
+          appraisal_value: number | null
+          arv: number | null
+          city: string | null
+          county: string | null
+          created_at: string
+          id: string
+          loan_id: string
+          property_type: string | null
+          property_usage: string | null
+          purchase_price: number | null
+          state: string | null
+          updated_at: string
+          zip: string | null
+        }
+        Insert: {
+          address_line?: string | null
+          appraisal_value?: number | null
+          arv?: number | null
+          city?: string | null
+          county?: string | null
+          created_at?: string
+          id?: string
+          loan_id: string
+          property_type?: string | null
+          property_usage?: string | null
+          purchase_price?: number | null
+          state?: string | null
+          updated_at?: string
+          zip?: string | null
+        }
+        Update: {
+          address_line?: string | null
+          appraisal_value?: number | null
+          arv?: number | null
+          city?: string | null
+          county?: string | null
+          created_at?: string
+          id?: string
+          loan_id?: string
+          property_type?: string | null
+          property_usage?: string | null
+          purchase_price?: number | null
+          state?: string | null
+          updated_at?: string
+          zip?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "properties_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "loans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stage_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          id: string
+          loan_id: string
+          new_stage: string
+          old_stage: string | null
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          loan_id: string
+          new_stage: string
+          old_stage?: string | null
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          loan_id?: string
+          new_stage?: string
+          old_stage?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stage_history_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "loans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
