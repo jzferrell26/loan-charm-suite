@@ -8,7 +8,7 @@ import { currency, timeAgo } from "@/lib/format";
 import { Plus, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/loans")({
+export const Route = createFileRoute("/loans/")({
   head: () => ({
     meta: [
       { title: "Loans — Processing Portal" },
