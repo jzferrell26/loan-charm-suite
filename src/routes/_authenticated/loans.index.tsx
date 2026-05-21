@@ -5,19 +5,21 @@ import { listLoans } from "@/lib/loans.functions";
 import { StageBadge } from "@/components/StageBadge";
 import { Avatar } from "@/components/Avatar";
 import { currency, timeAgo } from "@/lib/format";
-import { fullName, propertyAddress, STAGE_GROUPS, type Stage, type StageGroup } from "@/lib/domain";
+import { fullName, propertyAddress, STAGE_GROUPS, type Stage } from "@/lib/domain";
 import { Button } from "@/components/ui/button";
 
-const TABS = ["All", "Prospect", "Processing", "Closing", "Funded"] as const;
+const TABS = ["All", "Intake", "Processing", "Approvals", "Closing", "Funded"] as const;
 type Tab = (typeof TABS)[number];
 
 function isTab(value: unknown): value is Tab {
   return typeof value === "string" && TABS.includes(value as Tab);
 }
 
-function isStageGroupTab(value: Tab): value is StageGroup {
+function isStageGroupTab(value: Tab): value is Exclude<Tab, "All"> {
   return value !== "All";
 }
+
+
 
 export const Route = createFileRoute("/_authenticated/loans/")({
   validateSearch: (s: Record<string, unknown>) => ({

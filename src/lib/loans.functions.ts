@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { STAGES, LOAN_PURPOSES, LOAN_TYPES, PROPERTY_TYPES, PROPERTY_USAGES } from "./domain";
+import { STAGES } from "./domain";
 
 const WEBHOOK_URL = "https://n8n.voyze.ai/webhook/processing-portal-stage-change";
 
@@ -28,6 +28,23 @@ const BorrowerInput = z.object({
   state: NullableString.optional(),
   zip: NullableString.optional(),
   marital_status: NullableString.optional(),
+  // EPICCC
+  experience_level: NullableString.optional(),
+  properties_owned_count: NullableNumber.optional(),
+  annual_income: NullableNumber.optional(),
+  liquid_cash: NullableNumber.optional(),
+  retirement_balance: NullableNumber.optional(),
+  credit_score: NullableNumber.optional(),
+  bk_history: NullableString.optional(),
+  foreclosure_history: NullableString.optional(),
+  // Company Info
+  entity_name: NullableString.optional(),
+  entity_title: NullableString.optional(),
+  entity_address: NullableString.optional(),
+  entity_city: NullableString.optional(),
+  entity_state: NullableString.optional(),
+  entity_zip: NullableString.optional(),
+  ein: NullableString.optional(),
 });
 
 const PropertyInput = z.object({
@@ -36,8 +53,8 @@ const PropertyInput = z.object({
   state: NullableString.optional(),
   zip: NullableString.optional(),
   county: NullableString.optional(),
-  property_type: z.enum(PROPERTY_TYPES).nullable().optional(),
-  property_usage: z.enum(PROPERTY_USAGES).nullable().optional(),
+  property_type: NullableString.optional(),
+  property_usage: NullableString.optional(),
   purchase_price: NullableNumber.optional(),
   arv: NullableNumber.optional(),
   appraisal_value: NullableNumber.optional(),
@@ -45,8 +62,8 @@ const PropertyInput = z.object({
 
 const LoanInput = z.object({
   stage: z.enum(STAGES).optional(),
-  loan_purpose: z.enum(LOAN_PURPOSES).nullable().optional(),
-  loan_type: z.enum(LOAN_TYPES).nullable().optional(),
+  loan_purpose: NullableString.optional(),
+  loan_type: NullableString.optional(),
   loan_amount: NullableNumber.optional(),
   interest_rate: NullableNumber.optional(),
   ltv: NullableNumber.optional(),
@@ -60,7 +77,47 @@ const LoanInput = z.object({
   lender_name: NullableString.optional(),
   ghl_opportunity_id: NullableString.optional(),
   arive_loan_id: NullableString.optional(),
+  // EPICCC loan
+  exit_strategy: NullableString.optional(),
+  coe_date: NullableString.optional(),
+  refi_payoff: NullableNumber.optional(),
+  refi_cashout: NullableNumber.optional(),
+  taxes_annual: NullableNumber.optional(),
+  insurance_annual: NullableNumber.optional(),
+  hoa_annual: NullableNumber.optional(),
+  guc_plans: NullableString.optional(),
+  additional_info: NullableString.optional(),
+  working_with_another_lender: NullableString.optional(),
+  if_yes_terms_offered: NullableString.optional(),
+  // Loan Quote
+  loan_program: NullableString.optional(),
+  loan_term: NullableString.optional(),
+  initial_release_amount: NullableNumber.optional(),
+  hold_back_amount: NullableNumber.optional(),
+  ltv_ltarv: NullableString.optional(),
+  rate_pct: NullableNumber.optional(),
+  total_points_pct: NullableNumber.optional(),
+  investor_points_pct: NullableNumber.optional(),
+  investor_fees: NullableNumber.optional(),
+  additional_points_or_fee: NullableString.optional(),
+  cl_points_pct: NullableNumber.optional(),
+  cl_rebate_pct: NullableNumber.optional(),
+  cl_fees: NullableNumber.optional(),
+  cl_points_amount: NullableNumber.optional(),
+  total_points_and_fees: NullableNumber.optional(),
+  appraisal_fee: NullableNumber.optional(),
+  escrow_fees: NullableNumber.optional(),
+  title_fees: NullableNumber.optional(),
+  insurance_fee: NullableNumber.optional(),
+  inspection_fees: NullableNumber.optional(),
+  misc_fee: NullableNumber.optional(),
+  total_third_party_fees: NullableNumber.optional(),
+  monthly_payment: NullableNumber.optional(),
+  funding_source: NullableString.optional(),
+  term_sheet: NullableString.optional(),
+  referral_points_or_fees: NullableNumber.optional(),
 });
+
 
 // ---------------- LIST ----------------
 export const listLoans = createServerFn({ method: "GET" })
