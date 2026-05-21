@@ -68,6 +68,14 @@ export const useStore = create<State>((set, get) => ({
       timestamp: new Date().toISOString(),
     });
   },
+  updateLoan: (loanId, patch) =>
+    set((s) => ({
+      loans: s.loans.map((l) =>
+        l.id === loanId
+          ? { ...l, ...patch, lastUpdated: new Date().toISOString() }
+          : l
+      ),
+    })),
   addNote: (loanId, body) =>
     set((s) => ({
       loans: s.loans.map((l) =>
