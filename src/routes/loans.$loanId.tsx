@@ -306,7 +306,11 @@ function DealDetail() {
         {/* Main content */}
         <main className="flex-1 min-w-0 p-4">
           <div className="bg-card border rounded-md">
-            {activeView === "overview" && (
+            {activeView === "overview" && side === "borrower-info" && (
+              <BorrowerInfoView loan={loan} />
+            )}
+
+            {activeView === "overview" && side !== "borrower-info" && (
               <>
                 {/* Page title */}
                 <div className="flex items-center justify-between px-6 pt-5 pb-3">
