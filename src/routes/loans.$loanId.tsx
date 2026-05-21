@@ -51,6 +51,7 @@ function DealDetail() {
   const { loanId } = Route.useParams();
   const loan = useStore((s) => s.loans.find((l) => l.id === loanId));
   const updateStage = useStore((s) => s.updateLoanStage);
+  const updateLoan = useStore((s) => s.updateLoan);
   const addNote = useStore((s) => s.addNote);
   const addDocument = useStore((s) => s.addDocument);
 
