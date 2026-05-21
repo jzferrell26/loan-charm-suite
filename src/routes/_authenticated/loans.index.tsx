@@ -8,7 +8,7 @@ import { currency, timeAgo } from "@/lib/format";
 import { fullName, propertyAddress, STAGE_GROUPS, type Stage, type StageGroup } from "@/lib/domain";
 import { Button } from "@/components/ui/button";
 
-const TABS = ["All", "Prospect", "Processing", "Closing", "Funded"] as const;
+const TABS = ["All", "Intake", "Processing", "Approvals", "Closing", "Funded"] as const;
 type Tab = (typeof TABS)[number];
 
 function isTab(value: unknown): value is Tab {
@@ -18,6 +18,7 @@ function isTab(value: unknown): value is Tab {
 function isStageGroupTab(value: Tab): value is StageGroup {
   return value !== "All";
 }
+
 
 export const Route = createFileRoute("/_authenticated/loans/")({
   validateSearch: (s: Record<string, unknown>) => ({

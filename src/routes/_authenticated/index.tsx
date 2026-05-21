@@ -15,7 +15,7 @@ function Dashboard() {
   const fn = useServerFn(listLoans);
   const { data: loans = [] } = useQuery({ queryKey: ["loans"], queryFn: () => fn() });
 
-  const active = loans.filter((l) => l.stage !== "FUNDED").length;
+  const active = loans.filter((l) => l.stage !== "LOAN_FUNDED" && l.stage !== "FUNDED_AND_PAID" && l.stage !== "CANCELLED").length;
   const volume = loans.reduce((s, l) => s + (Number(l.loan_amount) || 0), 0);
   const closingThisMonth = loans.filter((l) => {
     if (!l.maturity_date) return false;
@@ -23,6 +23,7 @@ function Dashboard() {
     const n = new Date();
     return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear();
   }).length;
+
 
   const byStage = STAGES.map((s) => {
     const list = loans.filter((l) => l.stage === s);
@@ -40,7 +41,7 @@ function Dashboard() {
       <div className="grid grid-cols-4 gap-4">
         <Stat label="Active Loans" value={active} />
         <Stat label="Total Loan Volume" value={currency(volume)} />
-        <Stat label="Conditions Pending" value={loans.filter((l) => l.stage === "APPROVED_WITH_CONDITIONS").length} />
+        <Stat label="Conditions Pending" value={loans.filter((l) => l.stage === "CONDITIONAL_APPROVAL").length} />
         <Stat label="Closing This Month" value={closingThisMonth} />
       </div>
       <div className="grid grid-cols-2 gap-4">
