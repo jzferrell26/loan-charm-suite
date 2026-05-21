@@ -11,9 +11,13 @@ import { Button } from "@/components/ui/button";
 const TABS = ["All", "Prospect", "Processing", "Closing", "Funded"] as const;
 type Tab = (typeof TABS)[number];
 
+function isTab(value: unknown): value is Tab {
+  return typeof value === "string" && TABS.includes(value as Tab);
+}
+
 export const Route = createFileRoute("/_authenticated/loans")({
   validateSearch: (s: Record<string, unknown>) => ({
-    tab: (TABS as readonly string[]).includes(s.tab as string) ? (s.tab as Tab) : ("All" as Tab),
+    tab: isTab(s.tab) ? s.tab : "All",
   }),
   component: LoansList,
 });
