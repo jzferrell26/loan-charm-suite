@@ -480,7 +480,7 @@ function DealDetail() {
 
 function Metric({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="px-4">
+    <div className="px-3 whitespace-nowrap">
       <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
         {label}
       </div>
