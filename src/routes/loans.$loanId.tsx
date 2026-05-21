@@ -373,7 +373,17 @@ function DealDetail() {
                     {tab === "title" && <TitleInfoForm />}
                   </div>
                   <div className="space-y-5">
-                    <ProposedPayment monthly={proposed} />
+                    <ProposedPayment
+                      monthly={proposed}
+                      hoi={hoi}
+                      supplemental={supplemental}
+                      propertyTaxes={propertyTaxes}
+                      associationDues={associationDues}
+                      onHoiChange={setHoi}
+                      onSupplementalChange={setSupplemental}
+                      onPropertyTaxesChange={setPropertyTaxes}
+                      onAssociationDuesChange={setAssociationDues}
+                    />
                     <PurchaseCredits />
                   </div>
                 </div>
