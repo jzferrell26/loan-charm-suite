@@ -103,6 +103,25 @@ function DealDetail() {
     });
   };
 
+  const dirty =
+    purchasePrice !== loan.purchasePrice ||
+    appraisedValue !== (loan.arv ?? loan.purchasePrice) ||
+    baseLoanAmount !== loan.loanAmount ||
+    Math.abs(noteRate - loan.interestRate) > 0.0001 ||
+    termMonths !== (loan.termMonths ?? 360);
+
+  const handleSave = () => {
+    updateLoan(loan.id, {
+      purchasePrice,
+      arv: appraisedValue,
+      loanAmount: baseLoanAmount,
+      interestRate: noteRate,
+      termMonths,
+      ltv: Math.round(ltv * 10) / 10,
+    });
+    toast.success("Changes saved");
+  };
+
   return (
     <div className="bg-muted/30 min-h-[calc(100vh-3.5rem)]">
       {/* Top strip: loan # / breadcrumb / metrics */}
