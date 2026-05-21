@@ -14,7 +14,7 @@ function BorrowersList() {
   const fn = useServerFn(listLoans);
   const { data: loans = [] } = useQuery({ queryKey: ["loans"], queryFn: () => fn() });
   const borrowers = loans.flatMap((l) =>
-    (l.borrowers ?? []).map((b) => ({ ...b, loan_number: l.loan_number, loan_updated: l.updated_at })),
+    (l.borrowers ?? []).map((b) => ({ ...b, loan_id: l.id, loan_number: l.loan_number, loan_updated: l.updated_at })),
   );
 
   return (
@@ -39,7 +39,13 @@ function BorrowersList() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <Avatar name={name} size={28} />
-                      <span className="text-[var(--link)]">{name || "—"}</span>
+                      <Link
+                        to="/loans/$loanId"
+                        params={{ loanId: b.loan_id }}
+                        className="font-medium text-[var(--link)] hover:underline"
+                      >
+                        {name || "—"}
+                      </Link>
                     </div>
                   </td>
                   <td className="px-4 py-3">{b.email ?? "—"}</td>

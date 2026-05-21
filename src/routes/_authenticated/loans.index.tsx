@@ -24,6 +24,7 @@ function isStageGroupTab(value: Tab): value is Exclude<Tab, "All"> {
 export const Route = createFileRoute("/_authenticated/loans/")({
   validateSearch: (s: Record<string, unknown>) => ({
     tab: isTab(s.tab) ? s.tab : "All",
+    q: typeof s.q === "string" ? s.q : "",
   }),
   component: LoansList,
 });
@@ -31,17 +32,34 @@ export const Route = createFileRoute("/_authenticated/loans/")({
 function LoansList() {
   const fn = useServerFn(listLoans);
   const { data: loans = [] } = useQuery({ queryKey: ["loans"], queryFn: () => fn() });
-  const { tab: rawTab } = Route.useSearch();
+  const { tab: rawTab, q } = Route.useSearch();
   const navigate = Route.useNavigate();
   const tab = isTab(rawTab) ? rawTab : "All";
+  const query = q.trim().toLowerCase();
 
-  const filtered =
+  const byTab =
     !isStageGroupTab(tab)
       ? loans
       : loans.filter((l) => STAGE_GROUPS[tab].includes(l.stage as Stage));
 
+  const filtered = !query
+    ? byTab
+    : byTab.filter((l) => {
+        const primary = (l.borrowers ?? []).sort((a, b) => a.borrower_sequence - b.borrower_sequence)[0];
+        const name = fullName(primary).toLowerCase();
+        const prop = (l.properties ?? [])[0];
+        const addr = propertyAddress(prop).toLowerCase();
+        const hay = [name, l.loan_number ?? "", addr, l.loan_type ?? "", l.stage ?? ""].join(" ");
+        return hay.includes(query);
+      });
+
   return (
     <div className="mx-auto max-w-7xl px-6 py-6 space-y-4">
+      {query ? (
+        <p className="text-sm text-muted-foreground">
+          Showing {filtered.length} result{filtered.length === 1 ? "" : "s"} for &ldquo;{q}&rdquo;
+        </p>
+      ) : null}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Loans</h1>
         <Button asChild>
