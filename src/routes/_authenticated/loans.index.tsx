@@ -5,7 +5,7 @@ import { listLoans } from "@/lib/loans.functions";
 import { StageBadge } from "@/components/StageBadge";
 import { Avatar } from "@/components/Avatar";
 import { currency, timeAgo } from "@/lib/format";
-import { fullName, propertyAddress, STAGE_GROUPS, type Stage, type StageGroup } from "@/lib/domain";
+import { fullName, propertyAddress, STAGE_GROUPS, type Stage } from "@/lib/domain";
 import { Button } from "@/components/ui/button";
 
 const TABS = ["All", "Intake", "Processing", "Approvals", "Closing", "Funded"] as const;
