@@ -310,7 +310,11 @@ function DealDetail() {
               <BorrowerInfoView loan={loan} />
             )}
 
-            {activeView === "overview" && side !== "borrower-info" && (
+            {activeView === "overview" && side === "financial-info" && (
+              <FinancialInfoView loan={loan} />
+            )}
+
+            {activeView === "overview" && side !== "borrower-info" && side !== "financial-info" && (
               <>
                 {/* Page title */}
                 <div className="flex items-center justify-between px-6 pt-5 pb-3">
