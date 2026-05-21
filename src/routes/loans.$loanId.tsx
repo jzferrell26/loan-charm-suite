@@ -644,11 +644,10 @@ function NumberInput({
 }) {
   const [text, setText] = useState(format(value));
   const [focused, setFocused] = useState(false);
-  // sync external changes when not focused
-  if (!focused && text !== format(value)) {
-    // schedule via effect-like guard
-    setTimeout(() => setText(format(value)), 0);
-  }
+  useEffect(() => {
+    if (!focused) setText(format(value));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, focused]);
   return (
     <div className="relative">
       <input
