@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useStore } from "@/lib/store";
 import { STAGES, type Stage } from "@/lib/mock-data";
 import { StageBadge } from "@/components/StageBadge";
@@ -59,24 +59,37 @@ function DealDetail() {
   const [activeView, setActiveView] = useState<"overview" | "notes" | "documents">("overview");
   const [noteText, setNoteText] = useState("");
 
+  // Editable financial state — autocalculates across fields
+  const [purchasePrice, setPurchasePrice] = useState(loan?.purchasePrice ?? 0);
+  const [appraisedValue, setAppraisedValue] = useState(loan?.arv ?? loan?.purchasePrice ?? 0);
+  const [baseLoanAmount, setBaseLoanAmount] = useState(loan?.loanAmount ?? 0);
+  const [noteRate, setNoteRate] = useState(loan?.interestRate ?? 0);
+  const [termMonths, setTermMonths] = useState(loan?.termMonths ?? 360);
+
   if (!loan) throw notFound();
 
   const primary = loan.borrowers[0];
   const fico = 660;
   const dti = "0.00% / 0.00%";
-  const ftc = Math.round(loan.loanAmount * 0.067);
-  const downPayment = Math.max(0, loan.purchasePrice - loan.loanAmount);
-  const downPct = loan.purchasePrice
-    ? ((downPayment / loan.purchasePrice) * 100).toFixed(3)
-    : "0.000";
+  const downPayment = Math.max(0, purchasePrice - baseLoanAmount);
+  const downPct = purchasePrice ? (downPayment / purchasePrice) * 100 : 0;
+  const ltv = appraisedValue ? (baseLoanAmount / appraisedValue) * 100 : 0;
+  const ftc = Math.round(baseLoanAmount * 0.067);
 
   const proposed = useMemo(() => {
-    const r = loan.interestRate / 100 / 12;
-    const n = loan.termMonths || 360;
-    const p = loan.loanAmount;
+    const r = noteRate / 100 / 12;
+    const n = termMonths || 360;
+    const p = baseLoanAmount;
     const m = r === 0 ? p / n : (p * r) / (1 - Math.pow(1 + r, -n));
     return Math.round(m * 100) / 100;
-  }, [loan.interestRate, loan.termMonths, loan.loanAmount]);
+  }, [noteRate, termMonths, baseLoanAmount]);
+
+  const onDownPaymentChange = (v: number) =>
+    setBaseLoanAmount(Math.max(0, purchasePrice - v));
+  const onLtvChange = (v: number) => {
+    if (!appraisedValue) return;
+    setBaseLoanAmount(Math.round((v / 100) * appraisedValue));
+  };
 
   const handleStage = (newStage: Stage) => {
     updateStage(loan.id, newStage);
@@ -121,8 +134,8 @@ function DealDetail() {
               label="Loan Amount · LTV"
               value={
                 <>
-                  {currency(loan.loanAmount)}.00 ·{" "}
-                  <span className="font-normal">{loan.ltv.toFixed(2)}%</span>
+                  {currency(baseLoanAmount)}.00 ·{" "}
+                  <span className="font-normal">{ltv.toFixed(2)}%</span>
                 </>
               }
             />
@@ -132,13 +145,14 @@ function DealDetail() {
               value={
                 <span className="inline-flex items-center gap-1">
                   <span className="text-orange-500">🔒</span>
-                  {loan.interestRate.toFixed(3)}%
+                  {noteRate.toFixed(3)}%
                 </span>
               }
             />
             <Metric label="DTI" value={dti} />
             <Metric label="FTC" value={`${currency(ftc)}.00`} />
             <Metric label="Est Closing" value="--" />
+
           </div>
 
           <div className="ml-auto flex items-center gap-1.5">
@@ -332,7 +346,25 @@ function DealDetail() {
 
                 <div className="grid grid-cols-1 xl:grid-cols-[1fr_460px] gap-6 p-6">
                   <div className="min-w-0">
-                    {tab === "loan" && <LoanInfoForm loan={loan} downPayment={downPayment} downPct={downPct} />}
+                    {tab === "loan" && (
+                      <LoanInfoForm
+                        purchasePrice={purchasePrice}
+                        appraisedValue={appraisedValue}
+                        baseLoanAmount={baseLoanAmount}
+                        noteRate={noteRate}
+                        termMonths={termMonths}
+                        downPayment={downPayment}
+                        downPct={downPct}
+                        ltv={ltv}
+                        onPurchasePriceChange={setPurchasePrice}
+                        onAppraisedValueChange={setAppraisedValue}
+                        onBaseLoanChange={setBaseLoanAmount}
+                        onDownPaymentChange={onDownPaymentChange}
+                        onLtvChange={onLtvChange}
+                        onNoteRateChange={setNoteRate}
+                        onTermChange={setTermMonths}
+                      />
+                    )}
                     {tab === "property" && <PropertyInfoForm loan={loan} />}
                     {tab === "title" && <TitleInfoForm />}
                   </div>
@@ -595,16 +627,87 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   );
 }
 
+function NumberInput({
+  value,
+  onCommit,
+  format = (n) => String(n),
+  parse = (s) => Number(s.replace(/[^\d.\-]/g, "")) || 0,
+  className,
+  suffix,
+}: {
+  value: number;
+  onCommit: (n: number) => void;
+  format?: (n: number) => string;
+  parse?: (s: string) => number;
+  className?: string;
+  suffix?: string;
+}) {
+  const [text, setText] = useState(format(value));
+  const [focused, setFocused] = useState(false);
+  useEffect(() => {
+    if (!focused) setText(format(value));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, focused]);
+  return (
+    <div className="relative">
+      <input
+        className={className}
+        value={text}
+        onChange={(e) => {
+          setText(e.target.value);
+          onCommit(parse(e.target.value));
+        }}
+        onFocus={() => setFocused(true)}
+        onBlur={() => {
+          setFocused(false);
+          setText(format(value));
+        }}
+      />
+      {suffix && (
+        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+          {suffix}
+        </span>
+      )}
+    </div>
+  );
+}
+
 function LoanInfoForm({
-  loan,
+  purchasePrice,
+  appraisedValue,
+  baseLoanAmount,
+  noteRate,
+  termMonths,
   downPayment,
   downPct,
+  ltv,
+  onPurchasePriceChange,
+  onAppraisedValueChange,
+  onBaseLoanChange,
+  onDownPaymentChange,
+  onLtvChange,
+  onNoteRateChange,
+  onTermChange,
 }: {
-  loan: { purchasePrice: number; arv: number; loanAmount: number; ltv: number; interestRate: number; termMonths: number };
+  purchasePrice: number;
+  appraisedValue: number;
+  baseLoanAmount: number;
+  noteRate: number;
+  termMonths: number;
   downPayment: number;
-  downPct: string;
+  downPct: number;
+  ltv: number;
+  onPurchasePriceChange: (n: number) => void;
+  onAppraisedValueChange: (n: number) => void;
+  onBaseLoanChange: (n: number) => void;
+  onDownPaymentChange: (n: number) => void;
+  onLtvChange: (n: number) => void;
+  onNoteRateChange: (n: number) => void;
+  onTermChange: (n: number) => void;
 }) {
   const [kind, setKind] = useState<"purchase" | "refinance">("purchase");
+  const fmtMoney = (n: number) => n.toLocaleString();
+  const fmtPct = (n: number) => `${n.toFixed(3)}%`;
   return (
     <div className="space-y-5">
       {/* Purchase / Refinance toggle */}
@@ -627,25 +730,56 @@ function LoanInfoForm({
 
       <div className="grid grid-cols-2 gap-4">
         <Field label="Purchase Price" required>
-          <input className={inputCls} defaultValue={currency(loan.purchasePrice)} />
+          <NumberInput
+            className={inputCls}
+            value={purchasePrice}
+            format={fmtMoney}
+            onCommit={onPurchasePriceChange}
+          />
         </Field>
         <Field label="Appraised Value" required>
-          <input className={inputCls} defaultValue={currency(loan.arv)} />
+          <NumberInput
+            className={inputCls}
+            value={appraisedValue}
+            format={fmtMoney}
+            onCommit={onAppraisedValueChange}
+          />
         </Field>
       </div>
 
       <div className="grid grid-cols-[1fr_120px_1fr_120px] gap-3">
         <Field label="Down Payment">
-          <input className={inputCls} defaultValue={currency(downPayment)} />
+          <NumberInput
+            className={inputCls}
+            value={downPayment}
+            format={fmtMoney}
+            onCommit={onDownPaymentChange}
+          />
         </Field>
         <Field label="Sources">
-          <input className={inputCls} defaultValue={`${downPct}%`} />
+          <NumberInput
+            className={inputCls}
+            value={downPct}
+            format={(n) => `${n.toFixed(2)}%`}
+            parse={(s) => Number(s.replace(/[^\d.\-]/g, "")) || 0}
+            onCommit={(pct) => onDownPaymentChange(Math.round((pct / 100) * purchasePrice))}
+          />
         </Field>
         <Field label="Base Loan Amount">
-          <input className={inputCls} defaultValue={currency(loan.loanAmount)} />
+          <NumberInput
+            className={inputCls}
+            value={baseLoanAmount}
+            format={fmtMoney}
+            onCommit={onBaseLoanChange}
+          />
         </Field>
         <Field label="LTV">
-          <input className={inputCls} defaultValue={`${loan.ltv.toFixed(3)}%`} />
+          <NumberInput
+            className={inputCls}
+            value={ltv}
+            format={fmtPct}
+            onCommit={onLtvChange}
+          />
         </Field>
       </div>
 
@@ -669,7 +803,7 @@ function LoanInfoForm({
       <div className="flex items-center justify-between text-sm">
         <div>
           <span className="font-medium">Total Loan Amount: </span>
-          <span className="font-semibold">{currency(loan.loanAmount)}.00</span>
+          <span className="font-semibold">{currency(baseLoanAmount)}.00</span>
           <Info className="inline-block ml-1 h-3.5 w-3.5 text-muted-foreground" />
         </div>
       </div>
@@ -679,9 +813,9 @@ function LoanInfoForm({
       </label>
 
       <div className="grid grid-cols-3 gap-6 border-t pt-3">
-        <Ratio label="LTV" value={`${loan.ltv.toFixed(2)}%`} />
-        <Ratio label="CLTV" value={`${loan.ltv.toFixed(2)}%`} />
-        <Ratio label="HCLTV" value={`${loan.ltv.toFixed(2)}%`} />
+        <Ratio label="LTV" value={`${ltv.toFixed(2)}%`} />
+        <Ratio label="CLTV" value={`${ltv.toFixed(2)}%`} />
+        <Ratio label="HCLTV" value={`${ltv.toFixed(2)}%`} />
       </div>
 
       <Field label="Amortization Type">
@@ -693,7 +827,12 @@ function LoanInfoForm({
 
       <div className="grid grid-cols-2 gap-4">
         <Field label="Note Rate" required>
-          <input className={inputCls} defaultValue={`${loan.interestRate.toFixed(3)}%`} />
+          <NumberInput
+            className={inputCls}
+            value={noteRate}
+            format={fmtPct}
+            onCommit={onNoteRateChange}
+          />
         </Field>
         <Field label="Qualifying Rate">
           <input className={inputCls} placeholder="%" />
@@ -710,12 +849,13 @@ function LoanInfoForm({
 
       <div className="grid grid-cols-2 gap-4">
         <Field label="Amortization Term" required>
-          <div className="relative">
-            <input className={inputCls} defaultValue={String(loan.termMonths * 30)} />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-              months
-            </span>
-          </div>
+          <NumberInput
+            className={inputCls}
+            value={termMonths}
+            format={(n) => String(n)}
+            onCommit={onTermChange}
+            suffix="months"
+          />
         </Field>
         <Field label="Interest Only">
           <div className="flex items-center h-9 px-3 rounded-md border bg-muted/30 text-sm text-muted-foreground justify-between">
@@ -724,6 +864,7 @@ function LoanInfoForm({
           </div>
         </Field>
       </div>
+
 
       <div className="grid grid-cols-2 gap-4">
         <Field label="Impound Waiver">
