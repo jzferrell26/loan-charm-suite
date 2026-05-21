@@ -306,7 +306,11 @@ function DealDetail() {
         {/* Main content */}
         <main className="flex-1 min-w-0 p-4">
           <div className="bg-card border rounded-md">
-            {activeView === "overview" && (
+            {activeView === "overview" && side === "borrower-info" && (
+              <BorrowerInfoView loan={loan} />
+            )}
+
+            {activeView === "overview" && side !== "borrower-info" && (
               <>
                 {/* Page title */}
                 <div className="flex items-center justify-between px-6 pt-5 pb-3">
@@ -1204,6 +1208,403 @@ function PurchaseCredits() {
       <div className="p-6 text-sm text-muted-foreground text-center">
         No records found
       </div>
+    </div>
+  );
+}
+
+/* ----------------------- Borrower Info ----------------------- */
+
+type BTab = "basic" | "declarations" | "demographics" | "additional";
+
+function BorrowerInfoView({ loan }: { loan: NonNullable<ReturnType<typeof useStore.getState>["loans"][number]> }) {
+  const [activeBorrower, setActiveBorrower] = useState(0);
+  const [btab, setBtab] = useState<BTab>("basic");
+  const borrower = loan.borrowers[activeBorrower] ?? loan.borrowers[0];
+  const [first, ...rest] = borrower.name.split(" ");
+  const last = rest.join(" ");
+
+  return (
+    <>
+      {/* Borrower switcher */}
+      <div className="flex items-center justify-between px-6 pt-5 pb-3">
+        <div className="flex items-center gap-2">
+          {loan.borrowers.map((b, i) => {
+            const active = i === activeBorrower;
+            const isPrimary = b.role === "Primary";
+            return (
+              <button
+                key={b.borrowerId + i}
+                onClick={() => setActiveBorrower(i)}
+                className={cn(
+                  "rounded-md border px-4 py-2 text-left min-w-[180px]",
+                  active
+                    ? "border-[var(--link)] bg-blue-50/40"
+                    : "border-border hover:bg-muted"
+                )}
+              >
+                <div className={cn(
+                  "text-sm font-semibold",
+                  active && isPrimary && "text-[var(--link)]",
+                  active && !isPrimary && "text-orange-600",
+                  !active && "text-foreground"
+                )}>
+                  {b.name}
+                </div>
+                <div className="text-[11px] text-muted-foreground">{b.role === "Primary" ? "Primary Borrower" : "Co-Borrower"}</div>
+              </button>
+            );
+          })}
+        </div>
+        <button
+          onClick={() => toast.message("Manage Borrowers — mock")}
+          className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium text-[var(--link)] border-[var(--link)]/30 hover:bg-blue-50"
+        >
+          <Plus className="h-4 w-4" /> Manage Borrowers
+        </button>
+      </div>
+
+      {/* Sub tabs */}
+      <div className="px-6 border-b flex items-center gap-6">
+        <SubTabBtn active={btab === "basic"} onClick={() => setBtab("basic")}>Basic Details</SubTabBtn>
+        <SubTabBtn active={btab === "declarations"} onClick={() => setBtab("declarations")}>Declarations</SubTabBtn>
+        <SubTabBtn active={btab === "demographics"} onClick={() => setBtab("demographics")}>Demographics</SubTabBtn>
+        <SubTabBtn active={btab === "additional"} onClick={() => setBtab("additional")}>Additional Questions</SubTabBtn>
+      </div>
+
+      <div className="p-6 space-y-8">
+        {btab === "basic" && <BasicDetails first={first} last={last} email={borrower.email} phone={borrower.phone} />}
+        {btab === "declarations" && <DeclarationsSection />}
+        {btab === "demographics" && <DemographicsSection />}
+        {btab === "additional" && <AdditionalQuestionsSection />}
+      </div>
+    </>
+  );
+}
+
+function BField({ label, required, children, className }: { label: string; required?: boolean; children: React.ReactNode; className?: string }) {
+  return (
+    <div className={cn("space-y-1", className)}>
+      <label className="text-xs text-muted-foreground">
+        {label} {required && <span className="text-destructive">*</span>}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+function BInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      {...props}
+      className={cn(
+        "w-full h-9 rounded-md border bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--link)]/30",
+        props.className
+      )}
+    />
+  );
+}
+
+function BSelect({ children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <select
+      {...props}
+      className={cn(
+        "w-full h-9 rounded-md border bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--link)]/30",
+        props.className
+      )}
+    >
+      {children}
+    </select>
+  );
+}
+
+function BSectionTitle({ children }: { children: React.ReactNode }) {
+  return <h2 className="text-base font-semibold">{children}</h2>;
+}
+
+function BasicDetails({ first, last, email, phone }: { first: string; last: string; email: string; phone: string }) {
+  return (
+    <div className="space-y-8">
+      <section className="space-y-4">
+        <div className="flex items-center gap-4">
+          <BSectionTitle>Personal Info</BSectionTitle>
+          <label className="inline-flex items-center gap-1.5 text-xs text-foreground">
+            <input type="checkbox" defaultChecked className="h-3.5 w-3.5 accent-[var(--link)]" /> eConsent Authorized
+          </label>
+          <button className="ml-auto text-xs text-[var(--link)] hover:underline">Set Nickname</button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <BField label="First Name" required><BInput defaultValue={first} /></BField>
+          <BField label="Middle"><BInput /></BField>
+          <BField label="Last Name" required><BInput defaultValue={last} /></BField>
+          <BField label="Suffix"><BInput /></BField>
+          <BField label="SSN / ITIN" required><BInput defaultValue="xxx-xx-5654" /></BField>
+          <BField label="Date of Birth" required><BInput type="date" defaultValue="1988-02-03" /></BField>
+          <BField label="Residency Type" required>
+            <BSelect defaultValue="US Citizen"><option>US Citizen</option><option>Permanent Resident</option><option>Non-Permanent Resident</option></BSelect>
+          </BField>
+          <BField label="Marital Status" required>
+            <BSelect defaultValue="Married"><option>Unmarried</option><option>Married</option><option>Separated</option></BSelect>
+          </BField>
+          <BField label="Email" required><BInput type="email" defaultValue={email} /></BField>
+          <BField label="Cell Phone" required><BInput defaultValue={phone} /></BField>
+          <BField label="Work Phone"><BInput /></BField>
+          <BField label="Home Phone"><BInput /></BField>
+          <BField label="No. of Dependents"><BInput type="number" defaultValue={0} /></BField>
+          <BField label="Dependents ages"><BInput placeholder="e.g. 12,9,6" /></BField>
+          <BField label="Estimated Credit Score">
+            <BSelect defaultValue="700 - 739"><option>&lt; 580</option><option>580 - 619</option><option>620 - 659</option><option>660 - 699</option><option>700 - 739</option><option>740+</option></BSelect>
+          </BField>
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <BSectionTitle>Address</BSectionTitle>
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_180px_120px_140px] gap-4">
+          <BField label="Current Address" required><BInput defaultValue="27551 Kobuk Valley Drive, Menifee, CA 92585" /></BField>
+          <BField label="Occupancy" required>
+            <BSelect defaultValue="Own"><option>Own</option><option>Rent</option><option>Living Rent Free</option></BSelect>
+          </BField>
+          <BField label="Years Spent" required><BInput type="number" defaultValue={3} /></BField>
+          <BField label="Month Spent" required>
+            <BSelect defaultValue="5 Months">{Array.from({ length: 12 }, (_, i) => <option key={i}>{i} Months</option>)}</BSelect>
+          </BField>
+        </div>
+        <button className="inline-flex items-center gap-1 rounded-md border border-[var(--link)]/30 text-[var(--link)] px-3 py-1.5 text-sm font-medium hover:bg-blue-50">
+          <Plus className="h-4 w-4" /> Previous Address
+        </button>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" className="h-4 w-4 accent-[var(--link)]" />
+          Mailing address is <b>NOT</b> same as current address
+        </label>
+      </section>
+
+      <section className="space-y-3">
+        <BSectionTitle>Military Info</BSectionTitle>
+        <div className="text-sm">Borrower (or deceased spouse) ever serve, or currently serving, in the United States Armed Forces?</div>
+        <div className="space-y-2 text-sm">
+          {[
+            "None",
+            "Currently serving or active duty with projected expiration date of service/tour",
+            "Currently retired, discharged or separated from service",
+            "Only period of service was as a non-activated member of the Reserve or National Guard",
+          ].map((label, i) => (
+            <label key={label} className="flex items-center gap-2">
+              <input type="radio" name="mil" defaultChecked={i === 0} className="h-4 w-4 accent-[var(--link)]" />
+              {label}
+            </label>
+          ))}
+          <label className="flex items-center gap-2">
+            <input type="checkbox" className="h-4 w-4 accent-[var(--link)]" /> Surviving spouse
+          </label>
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <BSectionTitle>Homeownership Education and Housing Counselling</BSectionTitle>
+        <YesNoRow label="Has the Borrower(s) completed homebuyer education (group or web-based classes) within the last 12 months?" />
+        <YesNoRow label="Has the Borrower(s) completed housing counselling (customised counselor-to-client services) within the last 12 months?" />
+      </section>
+
+      <section className="space-y-3">
+        <BSectionTitle>Language Preferences</BSectionTitle>
+        <div className="text-sm">Mark the language you would prefer, if available:</div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+          {["English", "Chinese", "Korean", "Spanish", "Tagalog", "Vietnamese", "Other", "I do not wish to respond"].map((l) => (
+            <label key={l} className="flex items-center gap-2">
+              <input type="checkbox" defaultChecked={l === "English"} className="h-4 w-4 accent-[var(--link)]" /> {l}
+            </label>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function YesNoRow({ label, defaultValue }: { label: string; defaultValue?: "yes" | "no" }) {
+  const id = label.slice(0, 20);
+  return (
+    <div className="flex items-start justify-between gap-4 py-2 border-b last:border-0">
+      <div className="text-sm flex-1">{label}</div>
+      <div className="flex items-center gap-4 text-sm shrink-0">
+        <label className="flex items-center gap-1.5">
+          <input type="radio" name={id} defaultChecked={defaultValue === "yes"} className="h-4 w-4 accent-[var(--link)]" /> Yes
+        </label>
+        <label className="flex items-center gap-1.5">
+          <input type="radio" name={id} defaultChecked={defaultValue === "no"} className="h-4 w-4 accent-[var(--link)]" /> No
+        </label>
+      </div>
+    </div>
+  );
+}
+
+function DeclarationsSection() {
+  const A = [
+    ["A", "Will you occupy the property as your primary residence?", "yes"],
+    ["", "Have you had an ownership interest in another property in the last three years?", "no"],
+    ["B", "If this is a Purchase Transaction: Do you have a family relationship or business affiliation with the seller of the property?", "no"],
+    ["C", "Are you borrowing any money for this real estate transaction (e.g., money for your closing costs or down payment) or obtaining any money from another party, such as the seller or realtor, that you have not disclosed on this loan application?", "no"],
+    ["D", "1. Have you or will you be applying for a mortgage loan on another property (not the property securing this loan) on or before closing this transaction that is not disclosed on this loan application?", "no"],
+    ["", "2. Have you or will you be applying for any new credit (e.g., installment loan, credit card, etc.) on or before closing this loan that is not disclosed on this application?", "no"],
+    ["E", "Will this property be subject to a lien that could take priority over the first mortgage lien, such as a clean energy lien paid through your property taxes (e.g., the Property Assessed Clean Energy Program)?", "no"],
+  ] as const;
+  const B = [
+    ["F", "Are you a co-signer or guarantor on any debt or loan that is not disclosed on this application?"],
+    ["G", "Are there any outstanding judgments against you?"],
+    ["H", "Are you currently delinquent or in default on a Federal debt?"],
+    ["I", "Are you a party to a lawsuit in which you potentially have any personal financial liability?"],
+    ["J", "Have you conveyed title to any property in lieu of foreclosure in the past 7 years?"],
+    ["K", "Within the past 7 years, have you completed a pre-foreclosure sale or short sale, whereby the property was sold to a third party and the Lender agreed to accept less than the outstanding mortgage balance due?"],
+    ["L", "Have you had property foreclosed upon in the last 7 years?"],
+    ["M", "Have you declared bankruptcy within the past 7 years?"],
+  ] as const;
+  return (
+    <div className="space-y-8">
+      <section className="space-y-2">
+        <BSectionTitle>About this property and your money for this loan</BSectionTitle>
+        <DeclTable rows={A.map(([k, q, v]) => ({ key: k, q, def: v as "yes" | "no" }))} />
+      </section>
+      <section className="space-y-2">
+        <BSectionTitle>About your Finances</BSectionTitle>
+        <DeclTable rows={B.map(([k, q]) => ({ key: k, q, def: "no" as const }))} />
+      </section>
+    </div>
+  );
+}
+
+function DeclTable({ rows }: { rows: { key: string; q: string; def: "yes" | "no" }[] }) {
+  return (
+    <div className="border rounded-md divide-y">
+      <div className="grid grid-cols-[40px_1fr_160px] px-3 py-2 text-[10px] uppercase tracking-wide text-muted-foreground bg-muted/40">
+        <span>Ref</span><span>Description</span><span className="text-right">Actions</span>
+      </div>
+      {rows.map((r, i) => (
+        <div key={i} className="grid grid-cols-[40px_1fr_160px] px-3 py-3 text-sm items-start">
+          <span className="font-medium">{r.key}</span>
+          <span>{r.q}</span>
+          <div className="flex items-center justify-end gap-4">
+            <label className="flex items-center gap-1.5">
+              <input type="radio" name={`d${i}`} defaultChecked={r.def === "yes"} className="h-4 w-4 accent-[var(--link)]" /> Yes
+            </label>
+            <label className="flex items-center gap-1.5">
+              <input type="radio" name={`d${i}`} defaultChecked={r.def === "no"} className="h-4 w-4 accent-[var(--link)]" /> No
+            </label>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function DemographicsSection() {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <span className="text-[11px] uppercase tracking-wide text-muted-foreground">Demographics</span>
+        <button className="text-xs text-[var(--link)] hover:underline">Reset</button>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+          <BSectionTitle>Race</BSectionTitle>
+          <div className="mt-2 space-y-1.5 text-sm">
+            <Chk label="American Indian / Alaska Native" />
+            <div className="pl-6"><BInput placeholder="Enter enrolled or principle tribe" /></div>
+            <Chk label="Asian" />
+            <div className="pl-6 space-y-1.5">
+              {["Asian Indian", "Chinese", "Filipino", "Japanese", "Korean", "Vietnamese", "Other Asian"].map(l => <Chk key={l} label={l} />)}
+              <BInput placeholder="Other Description" />
+            </div>
+            <Chk label="Black Or African American" />
+            <Chk label="Native Hawaiian / Pacific Islander" />
+            <div className="pl-6 space-y-1.5">
+              {["Native Hawaiian", "Samoan", "Guamanian Or Chamorro", "Other Pacific Islander"].map(l => <Chk key={l} label={l} />)}
+              <BInput placeholder="Other Description" />
+            </div>
+            <Chk label="White" defaultChecked />
+            <Chk label="I do not wish to provide this information" />
+          </div>
+        </div>
+        <div className="space-y-6">
+          <div>
+            <BSectionTitle>Ethnicity</BSectionTitle>
+            <div className="mt-2 space-y-1.5 text-sm">
+              <Chk label="Hispanic/Latino" defaultChecked />
+              <div className="pl-6 space-y-1.5">
+                {["Cuban", "Mexican", "Puerto Rican", "Other"].map(l => <Chk key={l} label={l} />)}
+                <BInput placeholder="Enter Origin" />
+              </div>
+              <Chk label="Not Hispanic/Latino" />
+              <Chk label="Do not wish to provide" />
+            </div>
+          </div>
+          <div>
+            <BSectionTitle>Sex</BSectionTitle>
+            <div className="mt-2 space-y-1.5 text-sm">
+              <Chk label="Male" />
+              <Chk label="Female" defaultChecked />
+              <Chk label="Do not wish to provide" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Chk({ label, defaultChecked }: { label: string; defaultChecked?: boolean }) {
+  return (
+    <label className="flex items-center gap-2">
+      <input type="checkbox" defaultChecked={defaultChecked} className="h-4 w-4 accent-[var(--link)]" />
+      {label}
+    </label>
+  );
+}
+
+function AdditionalQuestionsSection() {
+  return (
+    <div className="space-y-8">
+      <section className="space-y-3">
+        <BSectionTitle>To be completed by Financial Institution (for application taken in person):</BSectionTitle>
+        <div className="border rounded-md divide-y">
+          <div className="grid grid-cols-[1fr_160px] px-3 py-2 text-[10px] uppercase tracking-wide text-muted-foreground bg-muted/40">
+            <span>Description</span><span className="text-right">Actions</span>
+          </div>
+          {[
+            "Was the ethnicity of the Borrower collected on the basis of visual observation or surname?",
+            "Was the sex of the Borrower collected on the basis of visual observation or surname?",
+            "Was the race of the Borrower collected on the basis of visual observation or surname?",
+          ].map((q, i) => (
+            <div key={i} className="grid grid-cols-[1fr_160px] px-3 py-3 text-sm items-start">
+              <span>{q}</span>
+              <div className="flex items-center justify-end gap-4">
+                <label className="flex items-center gap-1.5">
+                  <input type="radio" name={`a${i}`} className="h-4 w-4 accent-[var(--link)]" /> Yes
+                </label>
+                <label className="flex items-center gap-1.5">
+                  <input type="radio" name={`a${i}`} defaultChecked className="h-4 w-4 accent-[var(--link)]" /> No
+                </label>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+      <section className="space-y-2">
+        <BSectionTitle>The demographic information was provided through:</BSectionTitle>
+        <div className="space-y-2 text-sm">
+          {["Face To Face", "Email or Internet", "Fax or Mail", "Telephone"].map((l, i) => (
+            <label key={l} className="flex items-center gap-2">
+              <input type="radio" name="prov" defaultChecked={i === 1} className="h-4 w-4 accent-[var(--link)]" /> {l}
+            </label>
+          ))}
+        </div>
+      </section>
+      <section>
+        <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2">Additional Questions</div>
+        <div className="text-sm text-muted-foreground border rounded-md p-6 text-center">No Results Found</div>
+      </section>
+      <p className="text-[11px] text-muted-foreground leading-relaxed">
+        <b>The purpose of collecting this information</b> is to help ensure that all applicants are treated fairly and that the housing needs of communities and neighborhoods are being fulfilled. For residential mortgage lending, Federal law requires that we ask applicants for their demographic information (ethnicity, sex, and race) in order to monitor our compliance with equal credit opportunity, fair housing, and home mortgage disclosure laws. You are not required to provide this information, but are encouraged to do so.
+      </p>
     </div>
   );
 }
