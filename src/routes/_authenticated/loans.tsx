@@ -5,7 +5,7 @@ import { listLoans } from "@/lib/loans.functions";
 import { StageBadge } from "@/components/StageBadge";
 import { Avatar } from "@/components/Avatar";
 import { currency, timeAgo } from "@/lib/format";
-import { fullName, propertyAddress, STAGE_GROUPS, type Stage } from "@/lib/domain";
+import { fullName, propertyAddress, STAGE_GROUPS, type Stage, type StageGroup } from "@/lib/domain";
 import { Button } from "@/components/ui/button";
 
 const TABS = ["All", "Prospect", "Processing", "Closing", "Funded"] as const;
@@ -13,6 +13,10 @@ type Tab = (typeof TABS)[number];
 
 function isTab(value: unknown): value is Tab {
   return typeof value === "string" && TABS.includes(value as Tab);
+}
+
+function isStageGroupTab(value: Tab): value is StageGroup {
+  return value !== "All";
 }
 
 export const Route = createFileRoute("/_authenticated/loans")({
@@ -25,11 +29,12 @@ export const Route = createFileRoute("/_authenticated/loans")({
 function LoansList() {
   const fn = useServerFn(listLoans);
   const { data: loans = [] } = useQuery({ queryKey: ["loans"], queryFn: () => fn() });
-  const { tab } = Route.useSearch();
+  const { tab: rawTab } = Route.useSearch();
   const navigate = Route.useNavigate();
+  const tab = isTab(rawTab) ? rawTab : "All";
 
   const filtered =
-    tab === "All"
+    !isStageGroupTab(tab)
       ? loans
       : loans.filter((l) => STAGE_GROUPS[tab].includes(l.stage as Stage));
 
