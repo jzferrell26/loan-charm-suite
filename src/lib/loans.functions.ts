@@ -170,7 +170,7 @@ export const createLoan = createServerFn({ method: "POST" })
     if (lErr || !loan) throw new Error(lErr?.message ?? "Failed to create loan");
 
     const borrowersPayload = data.borrowers.map((b) => {
-      const { id: _omit, ...rest } = b as { id?: string } & Record<string, unknown>;
+      const { id: _omit, ...rest } = b;
       void _omit;
       return { ...rest, loan_id: loan.id };
     });
