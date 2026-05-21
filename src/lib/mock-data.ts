@@ -35,11 +35,22 @@ export function groupOfStage(s: Stage): StageGroup {
   return "Prospect";
 }
 
+export type LoanBorrower = {
+  borrowerId: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: "Primary" | "Co-Borrower";
+  status: string; // e.g. "Needs In-Review · Full App"
+  pending?: boolean;
+};
+
 export type Loan = {
   id: string;
   loanNumber: string;
   borrowerId: string;
   borrowerName: string;
+  borrowers: LoanBorrower[];
   propertyAddress: string;
   propertyCity: string;
   propertyState: string;
