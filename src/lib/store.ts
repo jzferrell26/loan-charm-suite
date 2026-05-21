@@ -46,7 +46,9 @@ function fireStageWebhook(payload: {
   }
 }
 
-export const useStore = create<State>((set, get) => ({
+export const useStore = create<State>()(
+  persist(
+    (set, get) => ({
   loans: initialLoans,
   borrowers: initialBorrowers,
   contacts: initialContacts,
