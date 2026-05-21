@@ -310,7 +310,11 @@ function DealDetail() {
               <BorrowerInfoView loan={loan} />
             )}
 
-            {activeView === "overview" && side !== "borrower-info" && (
+            {activeView === "overview" && side === "financial-info" && (
+              <FinancialInfoView loan={loan} />
+            )}
+
+            {activeView === "overview" && side !== "borrower-info" && side !== "financial-info" && (
               <>
                 {/* Page title */}
                 <div className="flex items-center justify-between px-6 pt-5 pb-3">
@@ -1606,5 +1610,557 @@ function AdditionalQuestionsSection() {
         <b>The purpose of collecting this information</b> is to help ensure that all applicants are treated fairly and that the housing needs of communities and neighborhoods are being fulfilled. For residential mortgage lending, Federal law requires that we ask applicants for their demographic information (ethnicity, sex, and race) in order to monitor our compliance with equal credit opportunity, fair housing, and home mortgage disclosure laws. You are not required to provide this information, but are encouraged to do so.
       </p>
     </div>
+  );
+}
+
+/* ----------------------- Financial Info ----------------------- */
+
+type IncomeRow = {
+  id: string;
+  borrowerName: string;
+  incomeType: string;
+  employer: string;
+  base: number;
+  bonus: number;
+  commissions: number;
+  overtime: number;
+  other: number;
+};
+type AssetRow = {
+  id: string;
+  assetType: string;
+  owners: string[];
+  value: number;
+  bank: string;
+  accountNumber: string;
+};
+type LiabilityRow = {
+  id: string;
+  liabilityType: string;
+  owners: string[];
+  creditor: string;
+  unpaidBalance: number;
+  monthlyPayment: number;
+  willBePaidOff: boolean;
+};
+type ReoRow = {
+  id: string;
+  owners: string[];
+  address: string;
+  city: string;
+  state: string;
+  zip: string;
+  propertyType: string;
+  marketValue: number;
+  firstMortgage: number;
+  hoi: number;
+  propertyTaxes: number;
+  mortgageInsurance: number;
+  associationDues: number;
+};
+
+function newId() { return Math.random().toString(36).slice(2, 9); }
+
+function FinancialInfoView({ loan }: { loan: NonNullable<ReturnType<typeof useStore.getState>["loans"][number]> }) {
+  const [incomes, setIncomes] = useState<IncomeRow[]>([]);
+  const [assets, setAssets] = useState<AssetRow[]>([]);
+  const [liabilities, setLiabilities] = useState<LiabilityRow[]>([]);
+  const [reos, setReos] = useState<ReoRow[]>([]);
+  const [skipIncome, setSkipIncome] = useState(false);
+  const [assetsNA, setAssetsNA] = useState(false);
+  const [liabilitiesNA, setLiabilitiesNA] = useState(false);
+  const [reoNA, setReoNA] = useState(false);
+  const [openForm, setOpenForm] = useState<null | "income" | "asset" | "liability" | "reo">(null);
+
+  const monthlyIncome = useMemo(
+    () => incomes.reduce((s, r) => s + r.base + r.bonus + r.commissions + r.overtime + r.other, 0),
+    [incomes]
+  );
+  const totalAssets = useMemo(() => assets.reduce((s, r) => s + r.value, 0), [assets]);
+  const monthlyLiability = useMemo(
+    () => liabilities.filter(r => !r.willBePaidOff).reduce((s, r) => s + r.monthlyPayment, 0),
+    [liabilities]
+  );
+  const paidOff = useMemo(
+    () => liabilities.filter(r => r.willBePaidOff).reduce((s, r) => s + r.monthlyPayment, 0),
+    [liabilities]
+  );
+  const totalLiability = monthlyLiability + paidOff;
+  const reoTotal = useMemo(() => reos.reduce((s, r) => s + r.marketValue, 0), [reos]);
+
+  return (
+    <>
+      <div className="flex items-center justify-between px-6 pt-5 pb-3">
+        <h1 className="text-xl font-semibold">Financial Info</h1>
+        <button
+          onClick={() => toast.message("Analyze Income — mock")}
+          className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium text-[var(--link)] border-[var(--link)]/30 hover:bg-blue-50"
+        >
+          <FileText className="h-4 w-4" /> Analyze Income
+        </button>
+      </div>
+
+      <div className="border-t">
+        <FinSection
+          title="Monthly Income:"
+          totalLabel={currency(monthlyIncome)}
+          totalClass="text-emerald-600"
+          rightSlot={
+            <label className="flex items-center gap-1.5 text-xs">
+              <input type="checkbox" checked={skipIncome} onChange={(e) => setSkipIncome(e.target.checked)} className="h-3.5 w-3.5 accent-[var(--link)]" />
+              Skip Income Check
+            </label>
+          }
+          empty={incomes.length === 0 ? "No income added" : null}
+          addLabel="Income"
+          addOpen={openForm === "income"}
+          onAdd={() => setOpenForm(openForm === "income" ? null : "income")}
+          form={
+            openForm === "income" && (
+              <IncomeForm
+                borrowers={loan.borrowers.map(b => b.name)}
+                onCancel={() => setOpenForm(null)}
+                onSave={(row) => { setIncomes(prev => [...prev, row]); setOpenForm(null); toast.success("Income added"); }}
+              />
+            )
+          }
+        >
+          {incomes.length > 0 && (
+            <RowTable
+              headers={["Borrower", "Type", "Employer", "Monthly"]}
+              rows={incomes.map(r => [
+                r.borrowerName, r.incomeType, r.employer || "—",
+                currency(r.base + r.bonus + r.commissions + r.overtime + r.other),
+              ])}
+              onRemove={(i) => setIncomes(prev => prev.filter((_, idx) => idx !== i))}
+            />
+          )}
+        </FinSection>
+
+        <FinSection
+          title="Total Assets:"
+          totalLabel={currency(totalAssets)}
+          totalClass="text-purple-600"
+          rightSlot={<DoesNotApply checked={assetsNA} onChange={setAssetsNA} />}
+          empty={assets.length === 0 ? "No asset added" : null}
+          addLabel="Asset"
+          addOpen={openForm === "asset"}
+          onAdd={() => setOpenForm(openForm === "asset" ? null : "asset")}
+          form={
+            openForm === "asset" && (
+              <AssetForm
+                borrowers={loan.borrowers.map(b => b.name)}
+                onCancel={() => setOpenForm(null)}
+                onSave={(row) => { setAssets(prev => [...prev, row]); setOpenForm(null); toast.success("Asset added"); }}
+              />
+            )
+          }
+        >
+          {assets.length > 0 && (
+            <RowTable
+              headers={["Type", "Owners", "Bank / Institution", "Value"]}
+              rows={assets.map(r => [r.assetType, r.owners.join(", ") || "—", r.bank || "—", currency(r.value)])}
+              onRemove={(i) => setAssets(prev => prev.filter((_, idx) => idx !== i))}
+            />
+          )}
+        </FinSection>
+
+        <FinSection
+          title="Monthly Liability:"
+          totalLabel={currency(monthlyLiability)}
+          totalClass="text-orange-500"
+          extraMeta={
+            <>
+              <span className="text-muted-foreground">Paid Off:</span>
+              <span className="font-semibold">{currency(paidOff)}</span>
+              <span className="text-muted-foreground ml-3">Total:</span>
+              <span className="font-semibold">{currency(totalLiability)}</span>
+            </>
+          }
+          rightSlot={<DoesNotApply checked={liabilitiesNA} onChange={setLiabilitiesNA} />}
+          empty={liabilities.length === 0 ? "No liability added" : null}
+          addLabel="Liability"
+          addOpen={openForm === "liability"}
+          onAdd={() => setOpenForm(openForm === "liability" ? null : "liability")}
+          form={
+            openForm === "liability" && (
+              <LiabilityForm
+                borrowers={loan.borrowers.map(b => b.name)}
+                onCancel={() => setOpenForm(null)}
+                onSave={(row) => { setLiabilities(prev => [...prev, row]); setOpenForm(null); toast.success("Liability added"); }}
+              />
+            )
+          }
+        >
+          {liabilities.length > 0 && (
+            <RowTable
+              headers={["Type", "Creditor", "Owners", "Monthly", "Status"]}
+              rows={liabilities.map(r => [
+                r.liabilityType, r.creditor || "—", r.owners.join(", ") || "—",
+                currency(r.monthlyPayment), r.willBePaidOff ? "Will be paid off" : "Open",
+              ])}
+              onRemove={(i) => setLiabilities(prev => prev.filter((_, idx) => idx !== i))}
+            />
+          )}
+        </FinSection>
+
+        <FinSection
+          title="Real Estate Owned:"
+          totalLabel={currency(reoTotal)}
+          totalClass="text-[var(--link)]"
+          rightSlot={<DoesNotApply checked={reoNA} onChange={setReoNA} />}
+          empty={reos.length === 0 ? "No real estate added" : null}
+          addLabel="REO"
+          addOpen={openForm === "reo"}
+          onAdd={() => setOpenForm(openForm === "reo" ? null : "reo")}
+          form={
+            openForm === "reo" && (
+              <ReoForm
+                borrowers={loan.borrowers.map(b => b.name)}
+                onCancel={() => setOpenForm(null)}
+                onSave={(row) => { setReos(prev => [...prev, row]); setOpenForm(null); toast.success("REO added"); }}
+              />
+            )
+          }
+        >
+          {reos.length > 0 && (
+            <RowTable
+              headers={["Address", "Owners", "Type", "Market Value", "PITI/mo"]}
+              rows={reos.map(r => [
+                [r.address, r.city, r.state, r.zip].filter(Boolean).join(", "),
+                r.owners.join(", ") || "—",
+                r.propertyType || "—",
+                currency(r.marketValue),
+                currency(r.firstMortgage + r.hoi + r.propertyTaxes + r.mortgageInsurance + r.associationDues),
+              ])}
+              onRemove={(i) => setReos(prev => prev.filter((_, idx) => idx !== i))}
+            />
+          )}
+        </FinSection>
+      </div>
+    </>
+  );
+}
+
+function DoesNotApply({ checked, onChange }: { checked: boolean; onChange: (b: boolean) => void }) {
+  return (
+    <label className="flex items-center gap-1.5 text-xs">
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="h-3.5 w-3.5 accent-[var(--link)]" />
+      Does not apply
+    </label>
+  );
+}
+
+function FinSection({
+  title, totalLabel, totalClass, rightSlot, extraMeta, empty, addLabel, addOpen, onAdd, form, children,
+}: {
+  title: string;
+  totalLabel: string;
+  totalClass?: string;
+  rightSlot?: React.ReactNode;
+  extraMeta?: React.ReactNode;
+  empty: string | null;
+  addLabel: string;
+  addOpen: boolean;
+  onAdd: () => void;
+  form?: React.ReactNode;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className="border-b last:border-b-0">
+      <div className="flex items-center justify-between px-6 py-3">
+        <div className="flex items-center gap-3 text-sm">
+          <span className="font-semibold">{title}</span>
+          <span className={cn("font-semibold tabular-nums", totalClass)}>{totalLabel}</span>
+          {extraMeta && <span className="flex items-center gap-1.5 text-xs">{extraMeta}</span>}
+        </div>
+        {rightSlot}
+      </div>
+      <div className="bg-muted/30 px-6 py-4">
+        {children}
+        {empty && (
+          <div className="text-center text-sm text-muted-foreground">{empty}</div>
+        )}
+        {!addOpen && (
+          <div className="text-center mt-2">
+            <button
+              onClick={onAdd}
+              className="inline-flex items-center gap-1 rounded-md border border-[var(--link)]/30 bg-card text-[var(--link)] px-3 py-1.5 text-sm font-medium hover:bg-blue-50"
+            >
+              <Plus className="h-4 w-4" /> {addLabel}
+            </button>
+          </div>
+        )}
+        {form && (
+          <div className="mt-3 bg-card border rounded-md">{form}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function RowTable({ headers, rows, onRemove }: { headers: string[]; rows: React.ReactNode[][]; onRemove: (i: number) => void }) {
+  return (
+    <div className="bg-card border rounded-md overflow-hidden">
+      <div className="grid px-3 py-2 text-[10px] uppercase tracking-wide text-muted-foreground bg-muted/40" style={{ gridTemplateColumns: `repeat(${headers.length}, minmax(0,1fr)) 40px` }}>
+        {headers.map(h => <span key={h}>{h}</span>)}
+        <span />
+      </div>
+      {rows.map((r, i) => (
+        <div key={i} className="grid px-3 py-2 text-sm border-t items-center" style={{ gridTemplateColumns: `repeat(${headers.length}, minmax(0,1fr)) 40px` }}>
+          {r.map((c, j) => <span key={j} className="truncate">{c}</span>)}
+          <button onClick={() => onRemove(i)} className="text-xs text-destructive hover:underline justify-self-end">Remove</button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ---------- Forms ---------- */
+
+function FormShell({ title, onCancel, onSave, children }: { title: React.ReactNode; onCancel: () => void; onSave: () => void; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="px-4 py-3 border-b bg-muted/30 text-sm font-medium flex items-center gap-1">
+        {title}
+      </div>
+      <div className="p-4">{children}</div>
+      <div className="px-4 py-3 border-t flex items-center gap-2">
+        <button onClick={onSave} className="rounded-md bg-[var(--link)] text-white px-4 py-1.5 text-sm font-medium hover:opacity-90">Save</button>
+        <button onClick={onCancel} className="rounded-md border px-4 py-1.5 text-sm font-medium hover:bg-muted">Cancel</button>
+      </div>
+    </div>
+  );
+}
+
+function NumInput({ value, onChange, placeholder, className }: { value: number; onChange: (n: number) => void; placeholder?: string; className?: string }) {
+  return (
+    <input
+      type="number"
+      value={value || ""}
+      placeholder={placeholder}
+      onChange={(e) => onChange(Number(e.target.value) || 0)}
+      className={cn("w-full h-9 rounded-md border bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--link)]/30", className)}
+    />
+  );
+}
+
+function OwnersCheckGroup({ borrowers, value, onChange }: { borrowers: string[]; value: string[]; onChange: (v: string[]) => void }) {
+  const toggle = (name: string) => {
+    onChange(value.includes(name) ? value.filter(n => n !== name) : [...value, name]);
+  };
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {borrowers.map(n => (
+        <label key={n} className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={value.includes(n)} onChange={() => toggle(n)} className="h-4 w-4 accent-[var(--link)]" /> {n}
+        </label>
+      ))}
+    </div>
+  );
+}
+
+function IncomeForm({ borrowers, onSave, onCancel }: { borrowers: string[]; onSave: (r: IncomeRow) => void; onCancel: () => void }) {
+  const [borrowerName, setBorrowerName] = useState(borrowers[0] ?? "");
+  const [incomeType, setIncomeType] = useState("Base Employment Income");
+  const [employer, setEmployer] = useState("");
+  const [base, setBase] = useState(0);
+  const [bonus, setBonus] = useState(0);
+  const [commissions, setCommissions] = useState(0);
+  const [overtime, setOvertime] = useState(0);
+  const [other, setOther] = useState(0);
+  const total = base + bonus + commissions + overtime + other;
+  return (
+    <FormShell
+      title={<>Add Income for <select value={borrowerName} onChange={(e) => setBorrowerName(e.target.value)} className="ml-1 bg-transparent text-[var(--link)] font-medium focus:outline-none">{borrowers.map(b => <option key={b}>{b}</option>)}</select></>}
+      onCancel={onCancel}
+      onSave={() => onSave({ id: newId(), borrowerName, incomeType, employer, base, bonus, commissions, overtime, other })}
+    >
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-4">
+          <BField label="Income Type" required>
+            <BSelect value={incomeType} onChange={(e) => setIncomeType(e.target.value)}>
+              {["Base Employment Income", "Self Employment", "Bonus", "Commission", "Overtime", "Other"].map(o => <option key={o}>{o}</option>)}
+            </BSelect>
+          </BField>
+          <div className="text-sm font-semibold">Employment Details</div>
+          <BField label="Employer or Business Name" required>
+            <BInput value={employer} onChange={(e) => setEmployer(e.target.value)} />
+          </BField>
+          <div className="grid grid-cols-2 gap-3">
+            <BField label="Start Date" required><BInput type="date" /></BField>
+            <BField label="End Date"><BInput type="date" /></BField>
+          </div>
+        </div>
+        <div className="space-y-3">
+          <div className="text-sm font-semibold">Gross Monthly Income</div>
+          {([["Base Income", base, setBase, true], ["Bonus", bonus, setBonus, false], ["Commissions", commissions, setCommissions, false], ["Overtime", overtime, setOvertime, false], ["Other", other, setOther, false]] as const).map(([label, val, setter, req]) => (
+            <div key={label} className="grid grid-cols-[1fr_180px] items-center gap-3">
+              <label className="text-sm">{label} {req && <span className="text-destructive">*</span>}</label>
+              <div className="relative">
+                <NumInput value={val} onChange={setter} />
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">/mo</span>
+              </div>
+            </div>
+          ))}
+          <div className="grid grid-cols-[1fr_180px] items-center gap-3 pt-2 border-t">
+            <span className="text-sm font-semibold">Monthly Total</span>
+            <span className="text-sm font-semibold tabular-nums">{currency(total)} <span className="text-xs text-muted-foreground">/mo</span></span>
+          </div>
+        </div>
+      </div>
+    </FormShell>
+  );
+}
+
+function AssetForm({ borrowers, onSave, onCancel }: { borrowers: string[]; onSave: (r: AssetRow) => void; onCancel: () => void }) {
+  const [assetType, setAssetType] = useState("Checking");
+  const [owners, setOwners] = useState<string[]>([]);
+  const [value, setValue] = useState(0);
+  const [bank, setBank] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  return (
+    <FormShell
+      title="Add Asset"
+      onCancel={onCancel}
+      onSave={() => onSave({ id: newId(), assetType, owners, value, bank, accountNumber })}
+    >
+      <div className="text-sm font-semibold mb-3">Asset Details</div>
+      <div className="space-y-4 max-w-xl">
+        <BField label="Asset Type">
+          <BSelect value={assetType} onChange={(e) => setAssetType(e.target.value)}>
+            {["Checking", "Savings", "Money Market", "Stocks", "Retirement", "Gift", "Other"].map(o => <option key={o}>{o}</option>)}
+          </BSelect>
+        </BField>
+        <BField label="Owners" required>
+          <OwnersCheckGroup borrowers={borrowers} value={owners} onChange={setOwners} />
+        </BField>
+        <BField label="Cash or Market Value" required>
+          <NumInput value={value} onChange={setValue} />
+        </BField>
+        <div className="grid grid-cols-2 gap-3">
+          <BField label="Bank / Institution" required><BInput value={bank} onChange={(e) => setBank(e.target.value)} /></BField>
+          <BField label="Account Number"><BInput placeholder="Optional" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} /></BField>
+        </div>
+        <div className="flex items-center gap-6 pt-2">
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="h-4 w-4 accent-[var(--link)]" /> Is Verified</label>
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="h-4 w-4 accent-[var(--link)]" /> Liquidity</label>
+        </div>
+      </div>
+    </FormShell>
+  );
+}
+
+function LiabilityForm({ borrowers, onSave, onCancel }: { borrowers: string[]; onSave: (r: LiabilityRow) => void; onCancel: () => void }) {
+  const [liabilityType, setLiabilityType] = useState("Mortgage Loan");
+  const [owners, setOwners] = useState<string[]>([]);
+  const [creditor, setCreditor] = useState("");
+  const [unpaidBalance, setUnpaidBalance] = useState(0);
+  const [monthlyPayment, setMonthlyPayment] = useState(0);
+  const [willBePaidOff, setWillBePaidOff] = useState(false);
+  return (
+    <FormShell
+      title="Liability Details"
+      onCancel={onCancel}
+      onSave={() => onSave({ id: newId(), liabilityType, owners, creditor, unpaidBalance, monthlyPayment, willBePaidOff })}
+    >
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-4">
+          <BField label="Liability Type">
+            <BSelect value={liabilityType} onChange={(e) => setLiabilityType(e.target.value)}>
+              {["Mortgage Loan", "Open 30 Day", "Revolving", "Installment", "Lease", "HELOC", "Other"].map(o => <option key={o}>{o}</option>)}
+            </BSelect>
+          </BField>
+          <BField label="Owners" required>
+            <OwnersCheckGroup borrowers={borrowers} value={owners} onChange={setOwners} />
+          </BField>
+          <div className="grid grid-cols-2 gap-3">
+            <BField label="Unpaid Balance" required><NumInput value={unpaidBalance} onChange={setUnpaidBalance} /></BField>
+            <BField label="Monthly Payment" required><NumInput value={monthlyPayment} onChange={setMonthlyPayment} /></BField>
+          </div>
+        </div>
+        <div className="space-y-4">
+          <BField label="Creditor Name"><BInput value={creditor} onChange={(e) => setCreditor(e.target.value)} /></BField>
+          <BField label="Address"><BInput placeholder="Street Address" /></BField>
+          <div className="grid grid-cols-2 gap-3">
+            <BField label="City"><BInput /></BField>
+            <BField label="State"><BInput /></BField>
+          </div>
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <label className="flex items-center gap-2"><input type="checkbox" checked={willBePaidOff} onChange={(e) => setWillBePaidOff(e.target.checked)} className="h-4 w-4 accent-[var(--link)]" /> Will be paid off</label>
+            <label className="flex items-center gap-2"><input type="checkbox" className="h-4 w-4 accent-[var(--link)]" /> Omitted</label>
+            <label className="flex items-center gap-2"><input type="checkbox" className="h-4 w-4 accent-[var(--link)]" /> Re-Subordinate</label>
+            <label className="flex items-center gap-2"><input type="checkbox" className="h-4 w-4 accent-[var(--link)]" /> Derogatory</label>
+          </div>
+        </div>
+      </div>
+    </FormShell>
+  );
+}
+
+function ReoForm({ borrowers, onSave, onCancel }: { borrowers: string[]; onSave: (r: ReoRow) => void; onCancel: () => void }) {
+  const [owners, setOwners] = useState<string[]>([]);
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [zip, setZip] = useState("");
+  const [propertyType, setPropertyType] = useState("Single Family");
+  const [marketValue, setMarketValue] = useState(0);
+  const [firstMortgage, setFirstMortgage] = useState(0);
+  const [hoi, setHoi] = useState(0);
+  const [propertyTaxes, setPropertyTaxes] = useState(0);
+  const [mortgageInsurance, setMortgageInsurance] = useState(0);
+  const [associationDues, setAssociationDues] = useState(0);
+  const piti = firstMortgage + hoi + propertyTaxes + mortgageInsurance + associationDues;
+  return (
+    <FormShell
+      title="REO Details"
+      onCancel={onCancel}
+      onSave={() => onSave({ id: newId(), owners, address, city, state, zip, propertyType, marketValue, firstMortgage, hoi, propertyTaxes, mortgageInsurance, associationDues })}
+    >
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-4">
+          <BField label="Owners" required>
+            <OwnersCheckGroup borrowers={borrowers} value={owners} onChange={setOwners} />
+          </BField>
+          <BField label="Street Address" required><BInput value={address} onChange={(e) => setAddress(e.target.value)} /></BField>
+          <div className="grid grid-cols-2 gap-3">
+            <BField label="City" required><BInput value={city} onChange={(e) => setCity(e.target.value)} /></BField>
+            <BField label="State" required><BInput value={state} onChange={(e) => setState(e.target.value)} /></BField>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <BField label="Zip Code" required><BInput value={zip} onChange={(e) => setZip(e.target.value)} /></BField>
+            <BField label="Property Type" required>
+              <BSelect value={propertyType} onChange={(e) => setPropertyType(e.target.value)}>
+                {["Single Family", "Condo", "Townhouse", "Multi-Family", "Manufactured"].map(o => <option key={o}>{o}</option>)}
+              </BSelect>
+            </BField>
+          </div>
+          <BField label="Current Market Value" required><NumInput value={marketValue} onChange={setMarketValue} /></BField>
+        </div>
+        <div className="space-y-3">
+          <div className="text-sm font-semibold">Monthly Expenses</div>
+          {([
+            ["First Mortgage", firstMortgage, setFirstMortgage],
+            ["Homeowner's Insurance", hoi, setHoi],
+            ["Property Taxes", propertyTaxes, setPropertyTaxes],
+            ["Mortgage Insurance", mortgageInsurance, setMortgageInsurance],
+            ["Association / Project Dues", associationDues, setAssociationDues],
+          ] as const).map(([label, val, setter]) => (
+            <div key={label} className="grid grid-cols-[1fr_180px] items-center gap-3">
+              <label className="text-sm">{label}</label>
+              <div className="relative">
+                <NumInput value={val} onChange={setter} />
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">/mo</span>
+              </div>
+            </div>
+          ))}
+          <div className="grid grid-cols-[1fr_180px] items-center gap-3 pt-2 border-t">
+            <span className="text-sm font-semibold">Total Monthly PITI</span>
+            <span className="text-sm font-semibold tabular-nums text-destructive">{currency(piti)} <span className="text-xs text-muted-foreground">/mo</span></span>
+          </div>
+        </div>
+      </div>
+    </FormShell>
   );
 }
