@@ -9,38 +9,119 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ContactsRouteImport } from './routes/contacts'
+import { Route as BorrowersRouteImport } from './routes/borrowers'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LoansIndexRouteImport } from './routes/loans.index'
+import { Route as LoansNewRouteImport } from './routes/loans.new'
+import { Route as LoansLoanIdRouteImport } from './routes/loans.$loanId'
 
+const ContactsRoute = ContactsRouteImport.update({
+  id: '/contacts',
+  path: '/contacts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BorrowersRoute = BorrowersRouteImport.update({
+  id: '/borrowers',
+  path: '/borrowers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoansIndexRoute = LoansIndexRouteImport.update({
+  id: '/loans/',
+  path: '/loans/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoansNewRoute = LoansNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => LoansRoute,
+} as any)
+const LoansLoanIdRoute = LoansLoanIdRouteImport.update({
+  id: '/$loanId',
+  path: '/$loanId',
+  getParentRoute: () => LoansRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/borrowers': typeof BorrowersRoute
+  '/contacts': typeof ContactsRoute
+  '/loans/$loanId': typeof LoansLoanIdRoute
+  '/loans/new': typeof LoansNewRoute
+  '/loans/': typeof LoansIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/borrowers': typeof BorrowersRoute
+  '/contacts': typeof ContactsRoute
+  '/loans/$loanId': typeof LoansLoanIdRoute
+  '/loans/new': typeof LoansNewRoute
+  '/loans': typeof LoansIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/borrowers': typeof BorrowersRoute
+  '/contacts': typeof ContactsRoute
+  '/loans/$loanId': typeof LoansLoanIdRoute
+  '/loans/new': typeof LoansNewRoute
+  '/loans/': typeof LoansIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/borrowers'
+    | '/contacts'
+    | '/loans/$loanId'
+    | '/loans/new'
+    | '/loans/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/borrowers'
+    | '/contacts'
+    | '/loans/$loanId'
+    | '/loans/new'
+    | '/loans'
+  id:
+    | '__root__'
+    | '/'
+    | '/borrowers'
+    | '/contacts'
+    | '/loans/$loanId'
+    | '/loans/new'
+    | '/loans/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BorrowersRoute: typeof BorrowersRoute
+  ContactsRoute: typeof ContactsRoute
+  LoansIndexRoute: typeof LoansIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/contacts': {
+      id: '/contacts'
+      path: '/contacts'
+      fullPath: '/contacts'
+      preLoaderRoute: typeof ContactsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/borrowers': {
+      id: '/borrowers'
+      path: '/borrowers'
+      fullPath: '/borrowers'
+      preLoaderRoute: typeof BorrowersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +129,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/loans/': {
+      id: '/loans/'
+      path: '/loans'
+      fullPath: '/loans/'
+      preLoaderRoute: typeof LoansIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/loans/new': {
+      id: '/loans/new'
+      path: '/new'
+      fullPath: '/loans/new'
+      preLoaderRoute: typeof LoansNewRouteImport
+      parentRoute: typeof LoansRoute
+    }
+    '/loans/$loanId': {
+      id: '/loans/$loanId'
+      path: '/$loanId'
+      fullPath: '/loans/$loanId'
+      preLoaderRoute: typeof LoansLoanIdRouteImport
+      parentRoute: typeof LoansRoute
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BorrowersRoute: BorrowersRoute,
+  ContactsRoute: ContactsRoute,
+  LoansIndexRoute: LoansIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
