@@ -51,6 +51,16 @@ function NewLoanPage() {
       loanNumber: String(Math.floor(10000000 + Math.random() * 9000000)),
       borrowerId: `B${Date.now()}`,
       borrowerName: `${f.firstName} ${f.lastName}`.trim(),
+      borrowers: [
+        {
+          borrowerId: `B${Date.now()}`,
+          name: `${f.firstName} ${f.lastName}`.trim(),
+          email: (f as { email?: string }).email ?? "",
+          phone: (f as { phone?: string }).phone ?? "",
+          role: "Primary",
+          status: "Needs In-Review · Full App",
+        },
+      ],
       propertyAddress: f.address,
       propertyCity: f.city,
       propertyState: f.state,
