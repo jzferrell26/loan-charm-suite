@@ -134,8 +134,8 @@ function DealDetail() {
               label="Loan Amount · LTV"
               value={
                 <>
-                  {currency(loan.loanAmount)}.00 ·{" "}
-                  <span className="font-normal">{loan.ltv.toFixed(2)}%</span>
+                  {currency(baseLoanAmount)}.00 ·{" "}
+                  <span className="font-normal">{ltv.toFixed(2)}%</span>
                 </>
               }
             />
@@ -145,13 +145,14 @@ function DealDetail() {
               value={
                 <span className="inline-flex items-center gap-1">
                   <span className="text-orange-500">🔒</span>
-                  {loan.interestRate.toFixed(3)}%
+                  {noteRate.toFixed(3)}%
                 </span>
               }
             />
             <Metric label="DTI" value={dti} />
             <Metric label="FTC" value={`${currency(ftc)}.00`} />
             <Metric label="Est Closing" value="--" />
+
           </div>
 
           <div className="ml-auto flex items-center gap-1.5">
