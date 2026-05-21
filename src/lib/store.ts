@@ -14,6 +14,7 @@ type State = {
   borrowers: Borrower[];
   contacts: Contact[];
   updateLoanStage: (loanId: string, newStage: Stage) => void;
+  updateLoan: (loanId: string, patch: Partial<Loan>) => void;
   addNote: (loanId: string, body: string) => void;
   addDocument: (loanId: string, name: string) => void;
   addLoan: (loan: Loan) => void;
@@ -67,6 +68,14 @@ export const useStore = create<State>((set, get) => ({
       timestamp: new Date().toISOString(),
     });
   },
+  updateLoan: (loanId, patch) =>
+    set((s) => ({
+      loans: s.loans.map((l) =>
+        l.id === loanId
+          ? { ...l, ...patch, lastUpdated: new Date().toISOString() }
+          : l
+      ),
+    })),
   addNote: (loanId, body) =>
     set((s) => ({
       loans: s.loans.map((l) =>
