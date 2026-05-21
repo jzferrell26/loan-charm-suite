@@ -9,6 +9,7 @@ import {
   addNote,
   upsertBorrower,
   deleteBorrower,
+  upsertProperty,
 } from "@/lib/loans.functions";
 import { StageBadge } from "@/components/StageBadge";
 import { InlineField } from "@/components/InlineField";
@@ -16,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { STAGES, STAGE_LABELS, fullName, type Stage } from "@/lib/domain";
+import { STAGES, STAGE_LABELS, fullName, maskSsn, type Stage } from "@/lib/domain";
 import { timeAgo } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/loans/$loanId")({
@@ -31,6 +32,7 @@ function LoanDetail() {
   const noteFn = useServerFn(addNote);
   const upsertBorrowerFn = useServerFn(upsertBorrower);
   const deleteBorrowerFn = useServerFn(deleteBorrower);
+  const upsertPropertyFn = useServerFn(upsertProperty);
   const qc = useQueryClient();
 
   const { data: loan } = useQuery({
@@ -47,6 +49,19 @@ function LoanDetail() {
     .sort((a, b) => a.borrower_sequence - b.borrower_sequence);
   const primary = borrowers[0];
   const notes = (loan.notes ?? []).slice().sort((a, b) => b.created_at.localeCompare(a.created_at));
+  const property = (loan.properties ?? [])[0] ?? null;
+  const stageHistory = (loan.stage_history ?? []).slice().sort((a, b) => b.changed_at.localeCompare(a.changed_at));
+
+  async function saveProperty(field: string, value: string | null) {
+    try {
+      await upsertPropertyFn({
+        data: { loan_id: loanId, property: { [field]: value } as never },
+      });
+      qc.invalidateQueries({ queryKey: ["loan", loanId] });
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
 
   async function saveLoan(field: string, value: string | null) {
     try {
@@ -142,8 +157,10 @@ function LoanDetail() {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="quote">Loan Quote</TabsTrigger>
           <TabsTrigger value="epiccc">EPICCC</TabsTrigger>
+          <TabsTrigger value="property">Property</TabsTrigger>
           <TabsTrigger value="borrowers">Borrowers ({borrowers.length})</TabsTrigger>
           <TabsTrigger value="notes">Notes</TabsTrigger>
+          <TabsTrigger value="history">Stage History</TabsTrigger>
         </TabsList>
 
         {/* OVERVIEW */}
@@ -157,6 +174,7 @@ function LoanDetail() {
               <InlineField label="LTV" type="number" suffix="%" value={loan.ltv} onSave={(v) => saveLoan("ltv", v)} />
               <InlineField label="Term (months)" type="number" value={loan.loan_term_months} onSave={(v) => saveLoan("loan_term_months", v)} />
               <InlineField label="Points" type="number" value={loan.points} onSave={(v) => saveLoan("points", v)} />
+              <InlineField label="Origination fee" type="number" prefix="$" value={loan.origination_fee} onSave={(v) => saveLoan("origination_fee", v)} />
               <InlineField label="Maturity" type="date" value={loan.maturity_date} onSave={(v) => saveLoan("maturity_date", v)} />
               <InlineField label="Purchase price" type="number" prefix="$" value={loan.purchase_price} onSave={(v) => saveLoan("purchase_price", v)} />
               <InlineField label="Down payment" type="number" prefix="$" value={loan.down_payment} onSave={(v) => saveLoan("down_payment", v)} />
@@ -164,6 +182,25 @@ function LoanDetail() {
               <InlineField label="Lender" value={loan.lender_name} onSave={(v) => saveLoan("lender_name", v)} />
               <InlineField label="GHL Opportunity ID" value={loan.ghl_opportunity_id} onSave={(v) => saveLoan("ghl_opportunity_id", v)} />
               <InlineField label="Arive Loan ID" value={loan.arive_loan_id} onSave={(v) => saveLoan("arive_loan_id", v)} />
+            </div>
+          </Card>
+        </TabsContent>
+
+
+        {/* PROPERTY */}
+        <TabsContent value="property" className="space-y-4 mt-4">
+          <Card title="Subject Property">
+            <div className="grid grid-cols-4 gap-3">
+              <InlineField label="Address" className="col-span-2" value={property?.address_line} onSave={(v) => saveProperty("address_line", v)} />
+              <InlineField label="City" value={property?.city} onSave={(v) => saveProperty("city", v)} />
+              <InlineField label="State" value={property?.state} onSave={(v) => saveProperty("state", v)} />
+              <InlineField label="Zip" value={property?.zip} onSave={(v) => saveProperty("zip", v)} />
+              <InlineField label="County" value={property?.county} onSave={(v) => saveProperty("county", v)} />
+              <InlineField label="Property type" value={property?.property_type} onSave={(v) => saveProperty("property_type", v)} />
+              <InlineField label="Usage" value={property?.property_usage} onSave={(v) => saveProperty("property_usage", v)} />
+              <InlineField label="Purchase price" type="number" prefix="$" value={property?.purchase_price} onSave={(v) => saveProperty("purchase_price", v)} />
+              <InlineField label="ARV" type="number" prefix="$" value={property?.arv} onSave={(v) => saveProperty("arv", v)} />
+              <InlineField label="Appraisal value" type="number" prefix="$" value={property?.appraisal_value} onSave={(v) => saveProperty("appraisal_value", v)} />
             </div>
           </Card>
         </TabsContent>
@@ -258,7 +295,12 @@ function LoanDetail() {
                 <InlineField label="Email" value={b.email} onSave={(v) => saveBorrower(b, "email", v)} />
                 <InlineField label="Phone" value={b.phone} onSave={(v) => saveBorrower(b, "phone", v)} />
                 <InlineField label="DOB" type="date" value={b.dob} onSave={(v) => saveBorrower(b, "dob", v)} />
-                <InlineField label="SSN" value={b.ssn} onSave={(v) => saveBorrower(b, "ssn", v)} />
+                <div className="space-y-1.5">
+                  <InlineField label="SSN" value={b.ssn} onSave={(v) => saveBorrower(b, "ssn", v)} />
+                  {b.ssn ? (
+                    <p className="text-xs text-muted-foreground">Masked: {maskSsn(b.ssn)}</p>
+                  ) : null}
+                </div>
                 <InlineField label="Marital Status" value={b.marital_status} onSave={(v) => saveBorrower(b, "marital_status", v)} />
                 <InlineField label="Address" value={b.address_line} onSave={(v) => saveBorrower(b, "address_line", v)} />
                 <InlineField label="City" value={b.city} onSave={(v) => saveBorrower(b, "city", v)} />
@@ -313,6 +355,32 @@ function LoanDetail() {
             </div>
           </Card>
         </TabsContent>
+
+        {/* STAGE HISTORY */}
+        <TabsContent value="history" className="mt-4">
+          <Card title="Stage History">
+            <div className="divide-y">
+              {stageHistory.map((h) => (
+                <div key={h.id} className="flex items-center gap-4 py-3 text-sm">
+                  <div className="text-xs text-muted-foreground w-36 shrink-0">{timeAgo(h.changed_at)}</div>
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    {h.old_stage ? (
+                      <>
+                        <span className="text-muted-foreground">{historyStageLabel(h.old_stage)}</span>
+                        <span className="text-muted-foreground">→</span>
+                      </>
+                    ) : null}
+                    <span className="font-medium">{historyStageLabel(h.new_stage)}</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground truncate">{h.changed_by ?? "system"}</div>
+                </div>
+              ))}
+              {stageHistory.length === 0 && (
+                <p className="text-sm text-muted-foreground py-4">No stage changes recorded yet.</p>
+              )}
+            </div>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );
@@ -332,4 +400,8 @@ function Card({ title, right, children }: { title: string; right?: React.ReactNo
 
 function Subhead({ children }: { children: React.ReactNode }) {
   return <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mt-4 mb-2 first:mt-0">{children}</div>;
+}
+
+function historyStageLabel(stage: string): string {
+  return stage in STAGE_LABELS ? STAGE_LABELS[stage as Stage] : stage.replaceAll("_", " ");
 }

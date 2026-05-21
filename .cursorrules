@@ -1,0 +1,103 @@
+# Loan Charm Suite — Processing Portal
+
+## Stack
+- **Frontend:** TanStack Start (React 19), TanStack Router, TanStack Query, Vite 7, Tailwind 4, shadcn/ui
+- **Backend:** TanStack `createServerFn` + Supabase (Postgres, RLS, Auth)
+- **Deploy:** Cloudflare (wrangler.jsonc)
+- **Package manager:** Bun
+
+## Repo layout
+```
+src/
+  routes/           # File-based routes (login + _authenticated/*)
+  lib/
+    domain.ts       # Stages, labels, types, helpers (client-safe)
+    loans.functions.ts
+    contacts.functions.ts
+    format.ts
+  components/       # TopNav, Avatar, StageBadge, InlineField
+  integrations/supabase/
+supabase/migrations/
+```
+
+## Database (Supabase)
+Tables: `loans`, `borrowers` (1–4 per loan), `properties` (1 per loan), `notes`, `contacts`, `stage_history`.
+
+**Pipeline stages** (`loans.stage`, CHECK constraint):
+`APPLICATION_SENT`, `ON_HOLD`, `APPLICATION_RECEIVED`, `SENT_TO_PROCESSING`, `SENT_TO_UNDERWRITING`, `CONDITIONAL_APPROVAL`, `FINAL_APPROVAL`, `CLEAR_TO_CLOSE`, `DOCS_OUT`, `LOAN_FUNDED`, `FUNDED_AND_PAID`, `CANCELLED`
+
+**Stage badge colors** (`StageBadge` / `groupOfStage` in `domain.ts`):
+| Group | Stages | Color |
+|-------|--------|-------|
+| Intake | Application Sent, Application Received | blue |
+| Hold | On Hold | gray |
+| Processing | Sent to Processing, Sent to Underwriting | amber |
+| Approvals | Conditional Approval, Final Approval | violet |
+| Closing | Clear To Close, Docs Out | emerald |
+| Funded | Loan Funded, Funded & Paid | green |
+| Terminal | Cancelled | red |
+
+`stage_history` is populated by DB trigger `log_stage_change()` on `loans.stage` update.
+
+## GHL / n8n integration
+On stage change (`updateLoanStage` in `loans.functions.ts`), POST to:
+`https://n8n.voyze.ai/webhook/processing-portal-stage-change`
+
+Payload: `loan_id`, `loan_number`, `borrower_name`, `property_address`, `loan_amount`, `old_stage`, `new_stage`, `ghl_opportunity_id`, `timestamp`.
+
+Store GHL opportunity id in `loans.ghl_opportunity_id`. No inbound GHL sync in app yet.
+
+## Auth
+- `/login` — Supabase `signInWithPassword`
+- `/_authenticated` — client `beforeLoad` redirects if no session
+- Server functions — `requireSupabaseAuth` middleware (Bearer token from client)
+
+## Routes (implemented)
+| Route | File | Purpose |
+|-------|------|---------|
+| `/login` | `login.tsx` | Sign in |
+| `/` | `_authenticated/index.tsx` | Dashboard stats + pipeline bars |
+| `/loans` | `loans.index.tsx` | Loans table + stage-group tabs |
+| `/loans/new` | `loans.new.tsx` | Create loan + borrowers + property |
+| `/loans/$loanId` | `loans.$loanId.tsx` | Loan detail (tabbed) |
+| `/borrowers` | `borrowers.tsx` | All borrowers (flat list from loans) |
+| `/contacts` | `contacts.tsx` | Contacts list + create dialog |
+
+## Server functions
+
+### `loans.functions.ts`
+- `listLoans`, `getLoan`, `createLoan`, `updateLoan`, `updateLoanStage`
+- `upsertBorrower`, `deleteBorrower`, `upsertProperty`, `addNote`
+
+### `contacts.functions.ts`
+- `listContacts`, `createContact`, `updateContact` (update not used in UI)
+
+## Conventions
+- Inline edits: `InlineField` with 600ms debounced save → server fn → `queryClient.invalidateQueries`
+- Stage changes: use `updateLoanStage` only (not `updateLoan` patch.stage)
+- Dropdown option constants in `domain.ts` (`LOAN_PURPOSES`, `LOAN_TYPES`, etc.) — loan detail mostly uses free-text `InlineField` until option lists are finalized
+- Use `cursor/<name>-74f7` branch prefix for agent work
+
+## Done (Lovable baseline)
+- Auth + Supabase wiring
+- All 6 routes with real data (not placeholders)
+- Core components: TopNav, Avatar, StageBadge, InlineField
+- Full loan detail tabs: Overview, Loan Quote, EPICCC, Borrowers, Notes
+- EPICCC + Loan Quote + Company Info fields in schema, Zod, and UI
+- Stage webhook on change
+- Migrations for 12-stage pipeline + extended columns
+
+## Not done / follow-ups (build in order)
+1. **Property on loan detail** — `upsertProperty` exists; no UI on `loans.$loanId`
+2. **Stage history UI** — fetched in `getLoan` but not displayed
+3. **Contacts edit** — wire `updateContact`; optional delete
+4. **Borrowers page** — link rows to `/loans/$loanId`; consider dedicated query
+5. **New loan draft** — "Save as Draft" uses same stage as Submit (`APPLICATION_RECEIVED`)
+6. **Missing loan fields in UI** — e.g. `origination_fee`; SSN display with `maskSsn`
+7. **TopNav** — search, notifications, quick-add, sign-out, real user from session
+8. **Kanban pipeline view** — list/tabs only today
+9. **GHL folders** — Tasks, Loan Notes, Documents, etc. (out of scope for first pass)
+10. **Dropdown `<Select>`s** on loan detail when option lists are provided
+
+## Environment
+Requires `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` (see `.env`).

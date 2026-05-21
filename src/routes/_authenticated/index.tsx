@@ -67,7 +67,12 @@ function Dashboard() {
               const primary = (l.borrowers ?? []).sort((a, b) => a.borrower_sequence - b.borrower_sequence)[0];
               const name = fullName(primary) || "—";
               return (
-                <div key={l.id} className="flex items-center gap-3 py-2 text-sm">
+                <Link
+                  key={l.id}
+                  to="/loans/$loanId"
+                  params={{ loanId: l.id }}
+                  className="flex items-center gap-3 py-2 text-sm hover:bg-slate-50 -mx-2 px-2 rounded-md"
+                >
                   <Avatar name={name} size={28} />
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{name}</div>
@@ -75,7 +80,7 @@ function Dashboard() {
                   </div>
                   <StageBadge stage={l.stage as Stage} />
                   <div className="w-20 text-right text-xs text-muted-foreground">{timeAgo(l.updated_at)}</div>
-                </div>
+                </Link>
               );
             })}
             {loans.length === 0 && <p className="text-sm text-muted-foreground py-4">No loans yet.</p>}

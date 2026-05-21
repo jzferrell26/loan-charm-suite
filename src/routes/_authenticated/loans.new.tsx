@@ -43,7 +43,7 @@ function NewLoan() {
     try {
       const { id } = await create({
         data: {
-          loan: { ...loan, stage: "APPLICATION_RECEIVED" } as never,
+          loan: { ...loan, stage: asDraft ? "APPLICATION_SENT" : "APPLICATION_RECEIVED" } as never,
           borrowers: borrowers.map((b, i) => ({ ...b, borrower_sequence: i + 1 })) as never,
           property: property as never,
         },

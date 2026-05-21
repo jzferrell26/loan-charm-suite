@@ -164,7 +164,7 @@ export const createLoan = createServerFn({ method: "POST" })
     const { supabase } = context;
     const { data: loan, error: lErr } = await supabase
       .from("loans")
-      .insert({ stage: "APPLICATION_RECEIVED", ...data.loan })
+      .insert({ ...data.loan, stage: data.loan.stage ?? "APPLICATION_RECEIVED" })
       .select("*")
       .single();
     if (lErr || !loan) throw new Error(lErr?.message ?? "Failed to create loan");
