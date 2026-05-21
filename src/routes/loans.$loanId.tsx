@@ -1318,7 +1318,7 @@ function BSelect({ children, ...props }: React.SelectHTMLAttributes<HTMLSelectEl
   );
 }
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
+function BSectionTitle({ children }: { children: React.ReactNode }) {
   return <h2 className="text-base font-semibold">{children}</h2>;
 }
 
@@ -1327,7 +1327,7 @@ function BasicDetails({ first, last, email, phone }: { first: string; last: stri
     <div className="space-y-8">
       <section className="space-y-4">
         <div className="flex items-center gap-4">
-          <SectionTitle>Personal Info</SectionTitle>
+          <BSectionTitle>Personal Info</BSectionTitle>
           <label className="inline-flex items-center gap-1.5 text-xs text-foreground">
             <input type="checkbox" defaultChecked className="h-3.5 w-3.5 accent-[var(--link)]" /> eConsent Authorized
           </label>
@@ -1359,7 +1359,7 @@ function BasicDetails({ first, last, email, phone }: { first: string; last: stri
       </section>
 
       <section className="space-y-4">
-        <SectionTitle>Address</SectionTitle>
+        <BSectionTitle>Address</BSectionTitle>
         <div className="grid grid-cols-1 md:grid-cols-[1fr_180px_120px_140px] gap-4">
           <BField label="Current Address" required><BInput defaultValue="27551 Kobuk Valley Drive, Menifee, CA 92585" /></BField>
           <BField label="Occupancy" required>
@@ -1380,7 +1380,7 @@ function BasicDetails({ first, last, email, phone }: { first: string; last: stri
       </section>
 
       <section className="space-y-3">
-        <SectionTitle>Military Info</SectionTitle>
+        <BSectionTitle>Military Info</BSectionTitle>
         <div className="text-sm">Borrower (or deceased spouse) ever serve, or currently serving, in the United States Armed Forces?</div>
         <div className="space-y-2 text-sm">
           {[
@@ -1401,13 +1401,13 @@ function BasicDetails({ first, last, email, phone }: { first: string; last: stri
       </section>
 
       <section className="space-y-3">
-        <SectionTitle>Homeownership Education and Housing Counselling</SectionTitle>
+        <BSectionTitle>Homeownership Education and Housing Counselling</BSectionTitle>
         <YesNoRow label="Has the Borrower(s) completed homebuyer education (group or web-based classes) within the last 12 months?" />
         <YesNoRow label="Has the Borrower(s) completed housing counselling (customised counselor-to-client services) within the last 12 months?" />
       </section>
 
       <section className="space-y-3">
-        <SectionTitle>Language Preferences</SectionTitle>
+        <BSectionTitle>Language Preferences</BSectionTitle>
         <div className="text-sm">Mark the language you would prefer, if available:</div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
           {["English", "Chinese", "Korean", "Spanish", "Tagalog", "Vietnamese", "Other", "I do not wish to respond"].map((l) => (
@@ -1461,11 +1461,11 @@ function DeclarationsSection() {
   return (
     <div className="space-y-8">
       <section className="space-y-2">
-        <SectionTitle>About this property and your money for this loan</SectionTitle>
+        <BSectionTitle>About this property and your money for this loan</BSectionTitle>
         <DeclTable rows={A.map(([k, q, v]) => ({ key: k, q, def: v as "yes" | "no" }))} />
       </section>
       <section className="space-y-2">
-        <SectionTitle>About your Finances</SectionTitle>
+        <BSectionTitle>About your Finances</BSectionTitle>
         <DeclTable rows={B.map(([k, q]) => ({ key: k, q, def: "no" as const }))} />
       </section>
     </div>
@@ -1505,7 +1505,7 @@ function DemographicsSection() {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
-          <SectionTitle>Race</SectionTitle>
+          <BSectionTitle>Race</BSectionTitle>
           <div className="mt-2 space-y-1.5 text-sm">
             <Chk label="American Indian / Alaska Native" />
             <div className="pl-6"><BInput placeholder="Enter enrolled or principle tribe" /></div>
@@ -1526,7 +1526,7 @@ function DemographicsSection() {
         </div>
         <div className="space-y-6">
           <div>
-            <SectionTitle>Ethnicity</SectionTitle>
+            <BSectionTitle>Ethnicity</BSectionTitle>
             <div className="mt-2 space-y-1.5 text-sm">
               <Chk label="Hispanic/Latino" defaultChecked />
               <div className="pl-6 space-y-1.5">
@@ -1538,7 +1538,7 @@ function DemographicsSection() {
             </div>
           </div>
           <div>
-            <SectionTitle>Sex</SectionTitle>
+            <BSectionTitle>Sex</BSectionTitle>
             <div className="mt-2 space-y-1.5 text-sm">
               <Chk label="Male" />
               <Chk label="Female" defaultChecked />
@@ -1564,7 +1564,7 @@ function AdditionalQuestionsSection() {
   return (
     <div className="space-y-8">
       <section className="space-y-3">
-        <SectionTitle>To be completed by Financial Institution (for application taken in person):</SectionTitle>
+        <BSectionTitle>To be completed by Financial Institution (for application taken in person):</BSectionTitle>
         <div className="border rounded-md divide-y">
           <div className="grid grid-cols-[1fr_160px] px-3 py-2 text-[10px] uppercase tracking-wide text-muted-foreground bg-muted/40">
             <span>Description</span><span className="text-right">Actions</span>
@@ -1589,7 +1589,7 @@ function AdditionalQuestionsSection() {
         </div>
       </section>
       <section className="space-y-2">
-        <SectionTitle>The demographic information was provided through:</SectionTitle>
+        <BSectionTitle>The demographic information was provided through:</BSectionTitle>
         <div className="space-y-2 text-sm">
           {["Face To Face", "Email or Internet", "Fax or Mail", "Telephone"].map((l, i) => (
             <label key={l} className="flex items-center gap-2">
