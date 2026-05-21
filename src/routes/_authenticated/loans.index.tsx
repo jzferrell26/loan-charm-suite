@@ -15,9 +15,10 @@ function isTab(value: unknown): value is Tab {
   return typeof value === "string" && TABS.includes(value as Tab);
 }
 
-function isStageGroupTab(value: Tab): value is StageGroup {
+function isStageGroupTab(value: Tab): value is Exclude<Tab, "All"> {
   return value !== "All";
 }
+
 
 
 export const Route = createFileRoute("/_authenticated/loans/")({
