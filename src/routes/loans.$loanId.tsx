@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useStore } from "@/lib/store";
 import { STAGES, type Stage } from "@/lib/mock-data";
 import { StageBadge } from "@/components/StageBadge";
