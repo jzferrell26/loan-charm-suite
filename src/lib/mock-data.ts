@@ -143,9 +143,11 @@ const cities: [string, string, string][] = [
 export const initialLoans: Loan[] = Array.from({ length: 15 }, (_, i) => {
   const b = initialBorrowers[i % initialBorrowers.length];
   const stage = STAGES[i % STAGES.length];
-  const purchasePrice = 250000 + Math.round(Math.random() * 600000);
-  const loanAmount = Math.round(purchasePrice * (0.65 + Math.random() * 0.25));
-  const arv = purchasePrice + Math.round(Math.random() * 200000);
+  // Deterministic pseudo-random so SSR and client match
+  const rand = (seed: number) => ((Math.sin(seed) + 1) / 2);
+  const purchasePrice = 250000 + Math.round(rand(i + 1) * 600000);
+  const loanAmount = Math.round(purchasePrice * (0.65 + rand(i + 2) * 0.25));
+  const arv = purchasePrice + Math.round(rand(i + 3) * 200000);
   const [city, state, zip] = cities[i % cities.length];
   const streetNum = 100 + i * 37;
   const co = i % 3 === 0 ? initialBorrowers[(i + 1) % initialBorrowers.length] : null;
@@ -178,6 +180,26 @@ export const initialLoans: Loan[] = Array.from({ length: 15 }, (_, i) => {
         : []),
     ],
     propertyAddress: `${streetNum} ${["Oak", "Maple", "Pine", "Cedar", "Elm"][i % 5]} ${["St", "Ave", "Rd", "Ln"][i % 4]}`,
+    propertyCity: city,
+    propertyState: state,
+    propertyZip: zip,
+    propertyType: propTypes[i % propTypes.length],
+    purchasePrice,
+    arv,
+    loanAmount,
+    interestRate: 9 + Math.round(rand(i + 4) * 40) / 10,
+    ltv: Math.round((loanAmount / purchasePrice) * 1000) / 10,
+    termMonths: [12, 18, 24][i % 3],
+    points: 1 + (i % 3),
+    originationFee: Math.round(loanAmount * 0.015),
+    maturityDate: monthsAhead(12 + (i % 12)),
+    lender: lenders[i % lenders.length],
+    stage,
+    tasksDue: i % 7,
+    conditionsPending: i % 4,
+    trackers: { itp: i % 2 === 0, appraisal: i % 3 === 0, title: i % 4 === 0 },
+    lastUpdated: daysAgo(i),
+    closingDate: monthsAhead(1),
     propertyCity: city,
     propertyState: state,
     propertyZip: zip,
