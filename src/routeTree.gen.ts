@@ -9,159 +9,216 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ContactsRouteImport } from './routes/contacts'
-import { Route as BorrowersRouteImport } from './routes/borrowers'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as LoansIndexRouteImport } from './routes/loans.index'
-import { Route as LoansNewRouteImport } from './routes/loans.new'
-import { Route as LoansLoanIdRouteImport } from './routes/loans.$loanId'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedLoansRouteImport } from './routes/_authenticated/loans'
+import { Route as AuthenticatedContactsRouteImport } from './routes/_authenticated/contacts'
+import { Route as AuthenticatedBorrowersRouteImport } from './routes/_authenticated/borrowers'
+import { Route as AuthenticatedLoansNewRouteImport } from './routes/_authenticated/loans.new'
+import { Route as AuthenticatedLoansLoanIdRouteImport } from './routes/_authenticated/loans.$loanId'
 
-const ContactsRoute = ContactsRouteImport.update({
-  id: '/contacts',
-  path: '/contacts',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BorrowersRoute = BorrowersRouteImport.update({
-  id: '/borrowers',
-  path: '/borrowers',
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
-const LoansIndexRoute = LoansIndexRouteImport.update({
-  id: '/loans/',
-  path: '/loans/',
-  getParentRoute: () => rootRouteImport,
+const AuthenticatedLoansRoute = AuthenticatedLoansRouteImport.update({
+  id: '/loans',
+  path: '/loans',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
-const LoansNewRoute = LoansNewRouteImport.update({
-  id: '/loans/new',
-  path: '/loans/new',
-  getParentRoute: () => rootRouteImport,
+const AuthenticatedContactsRoute = AuthenticatedContactsRouteImport.update({
+  id: '/contacts',
+  path: '/contacts',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
-const LoansLoanIdRoute = LoansLoanIdRouteImport.update({
-  id: '/loans/$loanId',
-  path: '/loans/$loanId',
-  getParentRoute: () => rootRouteImport,
+const AuthenticatedBorrowersRoute = AuthenticatedBorrowersRouteImport.update({
+  id: '/borrowers',
+  path: '/borrowers',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedLoansNewRoute = AuthenticatedLoansNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthenticatedLoansRoute,
+} as any)
+const AuthenticatedLoansLoanIdRoute =
+  AuthenticatedLoansLoanIdRouteImport.update({
+    id: '/$loanId',
+    path: '/$loanId',
+    getParentRoute: () => AuthenticatedLoansRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/borrowers': typeof BorrowersRoute
-  '/contacts': typeof ContactsRoute
-  '/loans/$loanId': typeof LoansLoanIdRoute
-  '/loans/new': typeof LoansNewRoute
-  '/loans/': typeof LoansIndexRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/login': typeof LoginRoute
+  '/borrowers': typeof AuthenticatedBorrowersRoute
+  '/contacts': typeof AuthenticatedContactsRoute
+  '/loans': typeof AuthenticatedLoansRouteWithChildren
+  '/loans/$loanId': typeof AuthenticatedLoansLoanIdRoute
+  '/loans/new': typeof AuthenticatedLoansNewRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/borrowers': typeof BorrowersRoute
-  '/contacts': typeof ContactsRoute
-  '/loans/$loanId': typeof LoansLoanIdRoute
-  '/loans/new': typeof LoansNewRoute
-  '/loans': typeof LoansIndexRoute
+  '/login': typeof LoginRoute
+  '/borrowers': typeof AuthenticatedBorrowersRoute
+  '/contacts': typeof AuthenticatedContactsRoute
+  '/loans': typeof AuthenticatedLoansRouteWithChildren
+  '/': typeof AuthenticatedIndexRoute
+  '/loans/$loanId': typeof AuthenticatedLoansLoanIdRoute
+  '/loans/new': typeof AuthenticatedLoansNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/borrowers': typeof BorrowersRoute
-  '/contacts': typeof ContactsRoute
-  '/loans/$loanId': typeof LoansLoanIdRoute
-  '/loans/new': typeof LoansNewRoute
-  '/loans/': typeof LoansIndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/login': typeof LoginRoute
+  '/_authenticated/borrowers': typeof AuthenticatedBorrowersRoute
+  '/_authenticated/contacts': typeof AuthenticatedContactsRoute
+  '/_authenticated/loans': typeof AuthenticatedLoansRouteWithChildren
+  '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/loans/$loanId': typeof AuthenticatedLoansLoanIdRoute
+  '/_authenticated/loans/new': typeof AuthenticatedLoansNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/login'
     | '/borrowers'
     | '/contacts'
+    | '/loans'
     | '/loans/$loanId'
     | '/loans/new'
-    | '/loans/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
+    | '/login'
     | '/borrowers'
     | '/contacts'
+    | '/loans'
+    | '/'
     | '/loans/$loanId'
     | '/loans/new'
-    | '/loans'
   id:
     | '__root__'
-    | '/'
-    | '/borrowers'
-    | '/contacts'
-    | '/loans/$loanId'
-    | '/loans/new'
-    | '/loans/'
+    | '/_authenticated'
+    | '/login'
+    | '/_authenticated/borrowers'
+    | '/_authenticated/contacts'
+    | '/_authenticated/loans'
+    | '/_authenticated/'
+    | '/_authenticated/loans/$loanId'
+    | '/_authenticated/loans/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  BorrowersRoute: typeof BorrowersRoute
-  ContactsRoute: typeof ContactsRoute
-  LoansLoanIdRoute: typeof LoansLoanIdRoute
-  LoansNewRoute: typeof LoansNewRoute
-  LoansIndexRoute: typeof LoansIndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/contacts': {
-      id: '/contacts'
-      path: '/contacts'
-      fullPath: '/contacts'
-      preLoaderRoute: typeof ContactsRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/borrowers': {
-      id: '/borrowers'
-      path: '/borrowers'
-      fullPath: '/borrowers'
-      preLoaderRoute: typeof BorrowersRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
+    '/_authenticated/': {
+      id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
-    '/loans/': {
-      id: '/loans/'
+    '/_authenticated/loans': {
+      id: '/_authenticated/loans'
       path: '/loans'
-      fullPath: '/loans/'
-      preLoaderRoute: typeof LoansIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/loans'
+      preLoaderRoute: typeof AuthenticatedLoansRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
-    '/loans/new': {
-      id: '/loans/new'
-      path: '/loans/new'
+    '/_authenticated/contacts': {
+      id: '/_authenticated/contacts'
+      path: '/contacts'
+      fullPath: '/contacts'
+      preLoaderRoute: typeof AuthenticatedContactsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/borrowers': {
+      id: '/_authenticated/borrowers'
+      path: '/borrowers'
+      fullPath: '/borrowers'
+      preLoaderRoute: typeof AuthenticatedBorrowersRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/loans/new': {
+      id: '/_authenticated/loans/new'
+      path: '/new'
       fullPath: '/loans/new'
-      preLoaderRoute: typeof LoansNewRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedLoansNewRouteImport
+      parentRoute: typeof AuthenticatedLoansRoute
     }
-    '/loans/$loanId': {
-      id: '/loans/$loanId'
-      path: '/loans/$loanId'
+    '/_authenticated/loans/$loanId': {
+      id: '/_authenticated/loans/$loanId'
+      path: '/$loanId'
       fullPath: '/loans/$loanId'
-      preLoaderRoute: typeof LoansLoanIdRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedLoansLoanIdRouteImport
+      parentRoute: typeof AuthenticatedLoansRoute
     }
   }
 }
 
+interface AuthenticatedLoansRouteChildren {
+  AuthenticatedLoansLoanIdRoute: typeof AuthenticatedLoansLoanIdRoute
+  AuthenticatedLoansNewRoute: typeof AuthenticatedLoansNewRoute
+}
+
+const AuthenticatedLoansRouteChildren: AuthenticatedLoansRouteChildren = {
+  AuthenticatedLoansLoanIdRoute: AuthenticatedLoansLoanIdRoute,
+  AuthenticatedLoansNewRoute: AuthenticatedLoansNewRoute,
+}
+
+const AuthenticatedLoansRouteWithChildren =
+  AuthenticatedLoansRoute._addFileChildren(AuthenticatedLoansRouteChildren)
+
+interface AuthenticatedRouteChildren {
+  AuthenticatedBorrowersRoute: typeof AuthenticatedBorrowersRoute
+  AuthenticatedContactsRoute: typeof AuthenticatedContactsRoute
+  AuthenticatedLoansRoute: typeof AuthenticatedLoansRouteWithChildren
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedBorrowersRoute: AuthenticatedBorrowersRoute,
+  AuthenticatedContactsRoute: AuthenticatedContactsRoute,
+  AuthenticatedLoansRoute: AuthenticatedLoansRouteWithChildren,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  BorrowersRoute: BorrowersRoute,
-  ContactsRoute: ContactsRoute,
-  LoansLoanIdRoute: LoansLoanIdRoute,
-  LoansNewRoute: LoansNewRoute,
-  LoansIndexRoute: LoansIndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

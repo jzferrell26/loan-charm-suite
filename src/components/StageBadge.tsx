@@ -1,4 +1,4 @@
-import { groupOfStage, type Stage } from "@/lib/mock-data";
+import { groupOfStage, STAGE_LABELS, type Stage } from "@/lib/domain";
 import { cn } from "@/lib/utils";
 
 const groupStyles: Record<string, string> = {
@@ -22,11 +22,11 @@ export function StageBadge({ stage, className }: { stage: Stage; className?: str
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset",
         groupStyles[group],
-        className
+        className,
       )}
     >
       <span className={cn("h-1.5 w-1.5 rounded-full", dotColors[group])} />
-      {stage}
+      {STAGE_LABELS[stage]}
     </span>
   );
 }

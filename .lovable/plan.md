@@ -1,59 +1,84 @@
-# Processing Portal — Build Plan
+# Processing Portal — Supabase Migration & Full Build
 
-Internal loan ops tool for 3 users. Visual match to Arive (dark navy top nav, white content, dense list views, pill badges, avatar initials, blue name links). All data mocked in-memory; only live integration is the stage-change webhook.
+Move from the current mock-data/Zustand setup to a fully Supabase-backed app matching the Arive visual reference, with auth, persistent data across all 6 screens, stage-history logging, and the n8n webhook on stage change.
 
-## Tech & structure
+## 1. Backend: Enable Lovable Cloud + schema
 
-- TanStack Start file-based routes under `src/routes/`
-- Shared layout in `__root.tsx` with `<TopNav />` (dark navy) + white `<main>`
-- Mock data + in-memory store in `src/lib/mock-data.ts` + `src/lib/store.ts` (Zustand or simple React context) so stage changes persist across navigation within a session
-- Reusable primitives: `Avatar` (initials + deterministic color from name hash), `StageBadge` (pill, color per stage), `DataTable` row styles, `Tabs`
-- Webhook helper `src/lib/webhook.ts` → `POST https://n8n.voyze.ai/webhook/processing-portal-stage-change` with `{ loan_id, borrower_name, old_stage, new_stage, timestamp }`, fire-and-forget, errors swallowed + toast
+Enable Lovable Cloud, then create migrations for:
 
-## Design tokens (src/styles.css)
+- `loans` — all spec fields, `loan_number` auto-generated via sequence + trigger (e.g. `L-2026-0001`), `updated_at` auto-touched by trigger.
+- `borrowers` — FK to `loans`, `borrower_sequence` 1–4, unique `(loan_id, borrower_sequence)`.
+- `properties` — FK to `loans`.
+- `notes` — FK to `loans`, ordered by `created_at desc`.
+- `contacts` — standalone.
+- `stage_history` — FK to `loans`, captures old/new stage, `changed_by`, `changed_at`.
 
-- `--nav: oklch(...)` dark navy matching Arive (~#0F1B3D)
-- `--link: oklch(...)` Arive blue (~#2563EB)
-- Stage palette tokens: prospect (blue), processing (amber/purple), closing (orange), funded (green)
-- Inter font, tight row density (h ~64px), 1px subtle borders, `hover:bg-muted/40`
+Plus:
+- Enum-style CHECK constraints on `stage`, `loan_purpose`, `loan_type`, `property_type`, `property_usage`, `contact_type`.
+- Trigger: on `loans.stage` update, insert a row into `stage_history`.
+- RLS enabled on every table. Since this is an internal 3-user tool with no self-signup, policies are "any authenticated user can select/insert/update/delete". No public/anon access.
+- `created_by` / `changed_by` default to `auth.uid()`.
 
-## Routes
+## 2. Auth
 
-1. `/` → Dashboard
-   - 4 stat cards (Active Loans, Total Volume, Conditions Pending, Closing This Month) computed from mock loans
-   - Left: Pipeline Status grouped Prospect / Processing / Closing with count + $ + horizontal bar
-   - Right: Recent Loans list (avatar, name link, loan type, "Xd ago")
-2. `/loans` → Loans list
-   - Tabs: All · Prospect · Processing · Closing · Funded (filters in-memory store)
-   - Columns per spec; status cell shows `StageBadge` + ITP/Appraisal/Title checkbox trackers
-   - `+ New Loan` → `/loans/new`
-   - Row click → `/loans/$loanId`
-   - Pagination (client-side, 10/page)
-3. `/loans/$loanId` → Deal Detail
-   - Header: borrower name, loan #, **Stage selector** dropdown (fires webhook on change, updates store), `Generate Term Sheet` button (no-op + toast)
-   - Tabs: Overview (3-column Borrower / Property / Loan Terms cards, SSN masked) · Notes (timestamped feed + textarea + Add Note, stored in memory) · Documents (drag-drop placeholder + mock file list)
-4. `/loans/new` → New Loan form
-   - 3 sections matching Overview fields; `Save as Draft` and `Submit` both push to store and route to detail
-5. `/borrowers` → Borrowers list (avatar, name link, email, phone, created, updated, address; sort by Last Updated; `+ Borrower`)
-6. `/contacts` → Contacts list (avatar, name, type, company, email, phone, last updated; filter dropdowns All Contact Types / All Company Types; `+ Contact`)
+- Supabase email+password auth, no self-signup (users added via dashboard).
+- `/login` route (public): email + password form.
+- `_authenticated` pathless layout route gates everything else via `beforeLoad` + `redirect`.
+- Session persisted by the browser Supabase client (already default).
+- `onAuthStateChange` wired once in `__root.tsx` to invalidate router + query cache.
+- Logout from the avatar menu in `TopNav`.
 
-Each route gets its own `head()` with title.
+## 3. Data layer
 
-## Mock data
+- Use TanStack Query (already in template) with `createServerFn` + `requireSupabaseAuth` for all reads/writes.
+- Server fns live in `src/lib/*.functions.ts`:
+  - `loans.functions.ts` — list, get by id, create, update, updateStage (also fires webhook server-side).
+  - `borrowers.functions.ts` — list, get, create/update/delete (scoped to loan).
+  - `properties.functions.ts` — upsert per loan.
+  - `notes.functions.ts` — list by loan, add.
+  - `contacts.functions.ts` — list, create, update.
+  - `dashboard.functions.ts` — aggregated stats + pipeline breakdown.
+- All mutations call `queryClient.invalidateQueries` for affected keys.
+- Delete `src/lib/mock-data.ts` and `src/lib/store.ts` once routes are migrated.
 
-- ~15 loans across all stages with realistic borrower names, property addresses, amounts, LTV, lender names
-- ~20 borrowers, ~15 contacts (Real Estate Agent, Escrow Agent, Title Rep, Attorney)
+## 4. Stage change webhook
 
-## Stage webhook flow
+Move webhook out of client/Zustand into the `updateStage` server fn:
+- After updating `loans.stage`, build the full payload (loan_id, loan_number, borrower_name from primary borrower, property_address from properties, loan_amount, old_stage, new_stage, ghl_opportunity_id, timestamp).
+- `fetch` POST to `https://n8n.voyze.ai/webhook/processing-portal-stage-change` (fire-and-forget, errors logged but don't block).
+- `stage_history` row is written by the DB trigger, so it's atomic with the stage update.
 
-`updateLoanStage(loanId, newStage)` in store:
-1. capture `oldStage`
-2. update store
-3. `fetch(webhookUrl, { method: 'POST', body: JSON.stringify({...}), keepalive: true }).catch(noop)`
-4. toast "Stage updated"
+## 5. Screens (all live data)
 
-Used by both Loans list (if inline change added later) and Deal Detail dropdown.
+1. **Dashboard** (`/`): 4 stat cards, Pipeline Status panel (stage rows with count + $ volume + horizontal bar), Recent Loans panel. Single `dashboard.functions.ts` server fn.
+2. **Loans list** (`/loans`): filter tabs (All/Prospect/Processing/Closing/Funded — mapped to stage groups), columns per spec with avatar+name+loan#+address, stage badge, amount/LTV, last updated. "+ New Loan" button. Pagination (URL search params for `page`, `tab`).
+3. **Loan detail** (`/loans/$loanId`): Overview / Notes / Documents tabs. Overview = Borrower Info (1–4 borrowers, add/remove), Property Info, Loan Terms full-width. Stage selector in header. "Generate Term Sheet" placeholder button. Save button per section persists to Supabase.
+4. **New Loan** (`/loans/new`): multi-section form, Save Draft (stage=APPLICATION_RECEIVED) + Submit.
+5. **Borrowers** (`/borrowers`): list across all loans, click → detail with their loans.
+6. **Contacts** (`/contacts`): list with type filter, "+ Contact" creates.
 
-## Out of scope (V1)
+Visual: keep existing dark navy `TopNav`, avatar initials, blue name links, pill stage badges, subtle row hover — already aligned with Arive screenshots. Add a `+ Borrower` / `+ Contact` modal pattern using the shadcn Dialog.
 
-- Auth, backend, real file storage, term sheet generation, Tasks/Reports/Pricing/Leads nav items
+## 6. Cleanup
+
+- Remove Zustand store and mock-data.
+- Remove persisted-localStorage logic (Supabase is now source of truth).
+- Update `LoanContext`/types to match DB schema (snake_case → camelCase via a small mapper, or use generated Supabase types directly).
+
+## Technical details
+
+- Loan number generation: Postgres sequence `loans_loan_number_seq` + `BEFORE INSERT` trigger formatting `L-{YYYY}-{padded seq}`.
+- Stage history trigger: `AFTER UPDATE OF stage ON loans` → insert into `stage_history`, capturing `auth.uid()::text` as `changed_by`.
+- `updated_at` trigger on `loans`, `borrowers`, `properties`, `contacts`.
+- Webhook call from server fn uses `fetch` with `AbortSignal.timeout(5000)`; failures logged via `console.error`, never thrown to the user.
+- Stage filter tab → stage group mapping:
+  - Prospect: APPLICATION_RECEIVED, LOAN_SETUP
+  - Processing: TITLE_ORDERED, APPRAISAL_ORDERED, SUBMITTED_TO_UW, APPROVED_WITH_CONDITIONS
+  - Closing: CLEAR_TO_CLOSE, DOCS_OUT, DOCS_SIGNED
+  - Funded: FUNDED
+
+## Out of scope (this pass)
+
+- Document upload (placeholder UI only, per spec).
+- Generate Term Sheet action (placeholder button only).
+- GHL / Arive sync beyond storing the IDs.
