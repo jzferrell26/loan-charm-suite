@@ -14,6 +14,7 @@ type State = {
   borrowers: Borrower[];
   contacts: Contact[];
   updateLoanStage: (loanId: string, newStage: Stage) => void;
+  updateLoan: (loanId: string, patch: Partial<Loan>) => void;
   addNote: (loanId: string, body: string) => void;
   addDocument: (loanId: string, name: string) => void;
   addLoan: (loan: Loan) => void;
