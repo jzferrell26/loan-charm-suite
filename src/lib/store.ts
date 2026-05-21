@@ -120,4 +120,10 @@ export const useStore = create<State>()(
   addLoan: (loan) => set((s) => ({ loans: [loan, ...s.loans] })),
   addBorrower: (b) => set((s) => ({ borrowers: [b, ...s.borrowers] })),
   addContact: (c) => set((s) => ({ contacts: [c, ...s.contacts] })),
-}));
+    }),
+    {
+      name: "loan-store-v1",
+      storage: createJSONStorage(() => localStorage),
+    }
+  )
+);
