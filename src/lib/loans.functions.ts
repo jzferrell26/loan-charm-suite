@@ -169,11 +169,11 @@ export const createLoan = createServerFn({ method: "POST" })
       .single();
     if (lErr || !loan) throw new Error(lErr?.message ?? "Failed to create loan");
 
-    const borrowersPayload = data.borrowers.map((b) => ({
-      ...b,
-      id: undefined,
-      loan_id: loan.id,
-    }));
+    const borrowersPayload = data.borrowers.map((b) => {
+      const { id: _omit, ...rest } = b as { id?: string } & Record<string, unknown>;
+      void _omit;
+      return { ...rest, loan_id: loan.id };
+    });
     const { error: bErr } = await supabase.from("borrowers").insert(borrowersPayload);
     if (bErr) throw new Error(bErr.message);
 
