@@ -1271,7 +1271,7 @@ function BorrowerInfoView({ loan }: { loan: NonNullable<ReturnType<typeof useSto
         <SubTabBtn active={btab === "additional"} onClick={() => setBtab("additional")}>Additional Questions</SubTabBtn>
       </div>
 
-      <div className="p-6 space-y-8">
+      <div key={activeBorrower} className="p-6 space-y-8">
         {btab === "basic" && <BasicDetails first={first} last={last} email={borrower.email} phone={borrower.phone} />}
         {btab === "declarations" && <DeclarationsSection />}
         {btab === "demographics" && <DemographicsSection />}
