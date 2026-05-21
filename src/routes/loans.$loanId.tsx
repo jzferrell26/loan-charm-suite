@@ -133,12 +133,12 @@ function DealDetail() {
           </div>
 
           {/* Metric blocks */}
-          <div className="ml-2 flex items-center divide-x">
+          <div className="ml-2 flex items-center divide-x shrink-0">
             <Metric
               label="Loan Amount · LTV"
               value={
                 <>
-                  {currency(baseLoanAmount)}.00 ·{" "}
+                  {currency(baseLoanAmount)} ·{" "}
                   <span className="font-normal">{ltv.toFixed(2)}%</span>
                 </>
               }
@@ -154,7 +154,7 @@ function DealDetail() {
               }
             />
             <Metric label="DTI" value={dti} />
-            <Metric label="FTC" value={`${currency(ftc)}.00`} />
+            <Metric label="FTC" value={currency(ftc)} />
             <Metric label="Est Closing" value="--" />
 
           </div>
