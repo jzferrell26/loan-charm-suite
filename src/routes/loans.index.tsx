@@ -4,6 +4,7 @@ import { useStore } from "@/lib/store";
 import { groupOfStage, type StageGroup } from "@/lib/mock-data";
 import { Avatar } from "@/components/Avatar";
 import { StageBadge } from "@/components/StageBadge";
+import { BorrowerHoverCard } from "@/components/BorrowerHoverCard";
 import { currency, timeAgo } from "@/lib/format";
 import { Plus, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
