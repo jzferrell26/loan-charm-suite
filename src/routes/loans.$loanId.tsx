@@ -106,7 +106,7 @@ function DealDetail() {
     <div className="bg-muted/30 min-h-[calc(100vh-3.5rem)]">
       {/* Top strip: loan # / breadcrumb / metrics */}
       <div className="bg-card border-b">
-        <div className="flex items-center gap-4 px-4 h-14">
+        <div className="flex items-center gap-3 px-4 py-2 min-h-14 overflow-x-auto">
           <Link
             to="/loans"
             className="inline-flex items-center justify-center h-8 w-8 rounded-md border hover:bg-muted text-muted-foreground"
@@ -133,12 +133,12 @@ function DealDetail() {
           </div>
 
           {/* Metric blocks */}
-          <div className="ml-2 flex items-center divide-x">
+          <div className="ml-2 flex items-center divide-x shrink-0">
             <Metric
               label="Loan Amount · LTV"
               value={
                 <>
-                  {currency(baseLoanAmount)}.00 ·{" "}
+                  {currency(baseLoanAmount)} ·{" "}
                   <span className="font-normal">{ltv.toFixed(2)}%</span>
                 </>
               }
@@ -154,7 +154,7 @@ function DealDetail() {
               }
             />
             <Metric label="DTI" value={dti} />
-            <Metric label="FTC" value={`${currency(ftc)}.00`} />
+            <Metric label="FTC" value={currency(ftc)} />
             <Metric label="Est Closing" value="--" />
 
           </div>
@@ -480,7 +480,7 @@ function DealDetail() {
 
 function Metric({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="px-4">
+    <div className="px-3 whitespace-nowrap">
       <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
         {label}
       </div>
