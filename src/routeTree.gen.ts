@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as ContactsRouteImport } from './routes/contacts'
 import { Route as BorrowersRouteImport } from './routes/borrowers'
 import { Route as IndexRouteImport } from './routes/index'
@@ -16,6 +17,11 @@ import { Route as LoansIndexRouteImport } from './routes/loans.index'
 import { Route as LoansNewRouteImport } from './routes/loans.new'
 import { Route as LoansLoanIdRouteImport } from './routes/loans.$loanId'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContactsRoute = ContactsRouteImport.update({
   id: '/contacts',
   path: '/contacts',
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/borrowers': typeof BorrowersRoute
   '/contacts': typeof ContactsRoute
+  '/login': typeof LoginRoute
   '/loans/$loanId': typeof LoansLoanIdRoute
   '/loans/new': typeof LoansNewRoute
   '/loans/': typeof LoansIndexRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/borrowers': typeof BorrowersRoute
   '/contacts': typeof ContactsRoute
+  '/login': typeof LoginRoute
   '/loans/$loanId': typeof LoansLoanIdRoute
   '/loans/new': typeof LoansNewRoute
   '/loans': typeof LoansIndexRoute
@@ -68,6 +76,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/borrowers': typeof BorrowersRoute
   '/contacts': typeof ContactsRoute
+  '/login': typeof LoginRoute
   '/loans/$loanId': typeof LoansLoanIdRoute
   '/loans/new': typeof LoansNewRoute
   '/loans/': typeof LoansIndexRoute
@@ -78,6 +87,7 @@ export interface FileRouteTypes {
     | '/'
     | '/borrowers'
     | '/contacts'
+    | '/login'
     | '/loans/$loanId'
     | '/loans/new'
     | '/loans/'
@@ -86,6 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/borrowers'
     | '/contacts'
+    | '/login'
     | '/loans/$loanId'
     | '/loans/new'
     | '/loans'
@@ -94,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/borrowers'
     | '/contacts'
+    | '/login'
     | '/loans/$loanId'
     | '/loans/new'
     | '/loans/'
@@ -103,6 +115,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BorrowersRoute: typeof BorrowersRoute
   ContactsRoute: typeof ContactsRoute
+  LoginRoute: typeof LoginRoute
   LoansLoanIdRoute: typeof LoansLoanIdRoute
   LoansNewRoute: typeof LoansNewRoute
   LoansIndexRoute: typeof LoansIndexRoute
@@ -110,6 +123,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/contacts': {
       id: '/contacts'
       path: '/contacts'
@@ -159,6 +179,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BorrowersRoute: BorrowersRoute,
   ContactsRoute: ContactsRoute,
+  LoginRoute: LoginRoute,
   LoansLoanIdRoute: LoansLoanIdRoute,
   LoansNewRoute: LoansNewRoute,
   LoansIndexRoute: LoansIndexRoute,
@@ -166,3 +187,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
