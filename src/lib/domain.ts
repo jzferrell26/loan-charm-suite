@@ -1,53 +1,63 @@
 // Domain constants, types, and helpers (client-safe, no server imports).
 
 export const STAGES = [
+  "APPLICATION_SENT",
+  "ON_HOLD",
   "APPLICATION_RECEIVED",
-  "LOAN_SETUP",
-  "TITLE_ORDERED",
-  "APPRAISAL_ORDERED",
-  "SUBMITTED_TO_UW",
-  "APPROVED_WITH_CONDITIONS",
+  "SENT_TO_PROCESSING",
+  "SENT_TO_UNDERWRITING",
+  "CONDITIONAL_APPROVAL",
+  "FINAL_APPROVAL",
   "CLEAR_TO_CLOSE",
   "DOCS_OUT",
-  "DOCS_SIGNED",
-  "FUNDED",
+  "LOAN_FUNDED",
+  "FUNDED_AND_PAID",
+  "CANCELLED",
 ] as const;
 export type Stage = (typeof STAGES)[number];
 
 export const STAGE_LABELS: Record<Stage, string> = {
+  APPLICATION_SENT: "Application Sent",
+  ON_HOLD: "On Hold",
   APPLICATION_RECEIVED: "Application Received",
-  LOAN_SETUP: "Loan Setup",
-  TITLE_ORDERED: "Title Ordered",
-  APPRAISAL_ORDERED: "Appraisal Ordered",
-  SUBMITTED_TO_UW: "Submitted to Underwriting",
-  APPROVED_WITH_CONDITIONS: "Approved w/ Conditions",
+  SENT_TO_PROCESSING: "Sent to Processing",
+  SENT_TO_UNDERWRITING: "Sent to Underwriting",
+  CONDITIONAL_APPROVAL: "Conditional Approval",
+  FINAL_APPROVAL: "Final Approval",
   CLEAR_TO_CLOSE: "Clear to Close",
   DOCS_OUT: "Docs Out",
-  DOCS_SIGNED: "Docs Signed",
-  FUNDED: "Funded",
+  LOAN_FUNDED: "Loan Funded",
+  FUNDED_AND_PAID: "Funded & Paid",
+  CANCELLED: "Cancelled",
 };
 
-export type StageGroup = "Prospect" | "Processing" | "Closing" | "Funded";
+export type StageGroup =
+  | "Intake"
+  | "Hold"
+  | "Processing"
+  | "Approvals"
+  | "Closing"
+  | "Funded"
+  | "Terminal";
 
 export const STAGE_GROUPS: Record<StageGroup, Stage[]> = {
-  Prospect: ["APPLICATION_RECEIVED", "LOAN_SETUP"],
-  Processing: [
-    "TITLE_ORDERED",
-    "APPRAISAL_ORDERED",
-    "SUBMITTED_TO_UW",
-    "APPROVED_WITH_CONDITIONS",
-  ],
-  Closing: ["CLEAR_TO_CLOSE", "DOCS_OUT", "DOCS_SIGNED"],
-  Funded: ["FUNDED"],
+  Intake: ["APPLICATION_SENT", "APPLICATION_RECEIVED"],
+  Hold: ["ON_HOLD"],
+  Processing: ["SENT_TO_PROCESSING", "SENT_TO_UNDERWRITING"],
+  Approvals: ["CONDITIONAL_APPROVAL", "FINAL_APPROVAL"],
+  Closing: ["CLEAR_TO_CLOSE", "DOCS_OUT"],
+  Funded: ["LOAN_FUNDED", "FUNDED_AND_PAID"],
+  Terminal: ["CANCELLED"],
 };
 
 export function groupOfStage(s: Stage): StageGroup {
   for (const [g, list] of Object.entries(STAGE_GROUPS) as [StageGroup, Stage[]][]) {
     if (list.includes(s)) return g;
   }
-  return "Prospect";
+  return "Intake";
 }
 
+// Free-text dropdown helpers (option lists pending from user).
 export const LOAN_PURPOSES = ["Purchase", "Refinance", "Cash Out"] as const;
 export const LOAN_TYPES = ["Hard Money", "Bridge", "Fix and Flip", "DSCR"] as const;
 export const PROPERTY_TYPES = [
@@ -70,6 +80,7 @@ export type Loan = {
   id: string;
   loan_number: string | null;
   stage: Stage;
+  // Standard
   loan_purpose: string | null;
   loan_type: string | null;
   loan_amount: number | null;
@@ -85,6 +96,45 @@ export type Loan = {
   lender_name: string | null;
   ghl_opportunity_id: string | null;
   arive_loan_id: string | null;
+  // EPICCC
+  exit_strategy: string | null;
+  coe_date: string | null;
+  refi_payoff: number | null;
+  refi_cashout: number | null;
+  taxes_annual: number | null;
+  insurance_annual: number | null;
+  hoa_annual: number | null;
+  guc_plans: string | null;
+  additional_info: string | null;
+  working_with_another_lender: string | null;
+  if_yes_terms_offered: string | null;
+  // Loan Quote
+  loan_program: string | null;
+  loan_term: string | null;
+  initial_release_amount: number | null;
+  hold_back_amount: number | null;
+  ltv_ltarv: string | null;
+  rate_pct: number | null;
+  total_points_pct: number | null;
+  investor_points_pct: number | null;
+  investor_fees: number | null;
+  additional_points_or_fee: string | null;
+  cl_points_pct: number | null;
+  cl_rebate_pct: number | null;
+  cl_fees: number | null;
+  cl_points_amount: number | null;
+  total_points_and_fees: number | null;
+  appraisal_fee: number | null;
+  escrow_fees: number | null;
+  title_fees: number | null;
+  insurance_fee: number | null;
+  inspection_fees: number | null;
+  misc_fee: number | null;
+  total_third_party_fees: number | null;
+  monthly_payment: number | null;
+  funding_source: string | null;
+  term_sheet: string | null;
+  referral_points_or_fees: number | null;
   created_at: string;
   updated_at: string;
 };
@@ -104,6 +154,23 @@ export type Borrower = {
   state: string | null;
   zip: string | null;
   marital_status: string | null;
+  // EPICCC borrower
+  experience_level: string | null;
+  properties_owned_count: number | null;
+  annual_income: number | null;
+  liquid_cash: number | null;
+  retirement_balance: number | null;
+  credit_score: number | null;
+  bk_history: string | null;
+  foreclosure_history: string | null;
+  // Company Info
+  entity_name: string | null;
+  entity_title: string | null;
+  entity_address: string | null;
+  entity_city: string | null;
+  entity_state: string | null;
+  entity_zip: string | null;
+  ein: string | null;
   created_at: string;
   updated_at: string;
 };
