@@ -64,7 +64,11 @@ function DealDetail() {
   const [appraisedValue, setAppraisedValue] = useState(loan?.arv ?? loan?.purchasePrice ?? 0);
   const [baseLoanAmount, setBaseLoanAmount] = useState(loan?.loanAmount ?? 0);
   const [noteRate, setNoteRate] = useState(loan?.interestRate ?? 0);
-  const [termMonths, setTermMonths] = useState(loan?.termMonths ?? 360);
+  const [termMonths, setTermMonths] = useState(360);
+  const [hoi, setHoi] = useState(0);
+  const [supplemental, setSupplemental] = useState(0);
+  const [propertyTaxes, setPropertyTaxes] = useState(0);
+  const [associationDues, setAssociationDues] = useState(0);
 
   if (!loan) throw notFound();
 
