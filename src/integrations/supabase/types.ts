@@ -17,17 +17,32 @@ export type Database = {
       borrowers: {
         Row: {
           address_line: string | null
+          annual_income: number | null
+          bk_history: string | null
           borrower_sequence: number
           city: string | null
           created_at: string
+          credit_score: number | null
           dob: string | null
+          ein: string | null
           email: string | null
+          entity_address: string | null
+          entity_city: string | null
+          entity_name: string | null
+          entity_state: string | null
+          entity_title: string | null
+          entity_zip: string | null
+          experience_level: string | null
           first_name: string | null
+          foreclosure_history: string | null
           id: string
           last_name: string | null
+          liquid_cash: number | null
           loan_id: string
           marital_status: string | null
           phone: string | null
+          properties_owned_count: number | null
+          retirement_balance: number | null
           ssn: string | null
           state: string | null
           updated_at: string
@@ -35,17 +50,32 @@ export type Database = {
         }
         Insert: {
           address_line?: string | null
+          annual_income?: number | null
+          bk_history?: string | null
           borrower_sequence: number
           city?: string | null
           created_at?: string
+          credit_score?: number | null
           dob?: string | null
+          ein?: string | null
           email?: string | null
+          entity_address?: string | null
+          entity_city?: string | null
+          entity_name?: string | null
+          entity_state?: string | null
+          entity_title?: string | null
+          entity_zip?: string | null
+          experience_level?: string | null
           first_name?: string | null
+          foreclosure_history?: string | null
           id?: string
           last_name?: string | null
+          liquid_cash?: number | null
           loan_id: string
           marital_status?: string | null
           phone?: string | null
+          properties_owned_count?: number | null
+          retirement_balance?: number | null
           ssn?: string | null
           state?: string | null
           updated_at?: string
@@ -53,17 +83,32 @@ export type Database = {
         }
         Update: {
           address_line?: string | null
+          annual_income?: number | null
+          bk_history?: string | null
           borrower_sequence?: number
           city?: string | null
           created_at?: string
+          credit_score?: number | null
           dob?: string | null
+          ein?: string | null
           email?: string | null
+          entity_address?: string | null
+          entity_city?: string | null
+          entity_name?: string | null
+          entity_state?: string | null
+          entity_title?: string | null
+          entity_zip?: string | null
+          experience_level?: string | null
           first_name?: string | null
+          foreclosure_history?: string | null
           id?: string
           last_name?: string | null
+          liquid_cash?: number | null
           loan_id?: string
           marital_status?: string | null
           phone?: string | null
+          properties_owned_count?: number | null
+          retirement_balance?: number | null
           ssn?: string | null
           state?: string | null
           updated_at?: string
@@ -120,70 +165,181 @@ export type Database = {
       }
       loans: {
         Row: {
+          additional_info: string | null
+          additional_points_or_fee: string | null
+          appraisal_fee: number | null
           arive_loan_id: string | null
           arv: number | null
+          cl_fees: number | null
+          cl_points_amount: number | null
+          cl_points_pct: number | null
+          cl_rebate_pct: number | null
+          coe_date: string | null
           created_at: string
           down_payment: number | null
+          escrow_fees: number | null
+          exit_strategy: string | null
+          funding_source: string | null
           ghl_opportunity_id: string | null
+          guc_plans: string | null
+          hoa_annual: number | null
+          hold_back_amount: number | null
           id: string
+          if_yes_terms_offered: string | null
+          initial_release_amount: number | null
+          inspection_fees: number | null
+          insurance_annual: number | null
+          insurance_fee: number | null
           interest_rate: number | null
+          investor_fees: number | null
+          investor_points_pct: number | null
           lender_name: string | null
           loan_amount: number | null
           loan_number: string | null
+          loan_program: string | null
           loan_purpose: string | null
+          loan_term: string | null
           loan_term_months: number | null
           loan_type: string | null
           ltv: number | null
+          ltv_ltarv: string | null
           maturity_date: string | null
+          misc_fee: number | null
+          monthly_payment: number | null
           origination_fee: number | null
           points: number | null
           purchase_price: number | null
+          rate_pct: number | null
+          referral_points_or_fees: number | null
+          refi_cashout: number | null
+          refi_payoff: number | null
           stage: string
+          taxes_annual: number | null
+          term_sheet: string | null
+          title_fees: number | null
+          total_points_and_fees: number | null
+          total_points_pct: number | null
+          total_third_party_fees: number | null
           updated_at: string
+          working_with_another_lender: string | null
         }
         Insert: {
+          additional_info?: string | null
+          additional_points_or_fee?: string | null
+          appraisal_fee?: number | null
           arive_loan_id?: string | null
           arv?: number | null
+          cl_fees?: number | null
+          cl_points_amount?: number | null
+          cl_points_pct?: number | null
+          cl_rebate_pct?: number | null
+          coe_date?: string | null
           created_at?: string
           down_payment?: number | null
+          escrow_fees?: number | null
+          exit_strategy?: string | null
+          funding_source?: string | null
           ghl_opportunity_id?: string | null
+          guc_plans?: string | null
+          hoa_annual?: number | null
+          hold_back_amount?: number | null
           id?: string
+          if_yes_terms_offered?: string | null
+          initial_release_amount?: number | null
+          inspection_fees?: number | null
+          insurance_annual?: number | null
+          insurance_fee?: number | null
           interest_rate?: number | null
+          investor_fees?: number | null
+          investor_points_pct?: number | null
           lender_name?: string | null
           loan_amount?: number | null
           loan_number?: string | null
+          loan_program?: string | null
           loan_purpose?: string | null
+          loan_term?: string | null
           loan_term_months?: number | null
           loan_type?: string | null
           ltv?: number | null
+          ltv_ltarv?: string | null
           maturity_date?: string | null
+          misc_fee?: number | null
+          monthly_payment?: number | null
           origination_fee?: number | null
           points?: number | null
           purchase_price?: number | null
+          rate_pct?: number | null
+          referral_points_or_fees?: number | null
+          refi_cashout?: number | null
+          refi_payoff?: number | null
           stage?: string
+          taxes_annual?: number | null
+          term_sheet?: string | null
+          title_fees?: number | null
+          total_points_and_fees?: number | null
+          total_points_pct?: number | null
+          total_third_party_fees?: number | null
           updated_at?: string
+          working_with_another_lender?: string | null
         }
         Update: {
+          additional_info?: string | null
+          additional_points_or_fee?: string | null
+          appraisal_fee?: number | null
           arive_loan_id?: string | null
           arv?: number | null
+          cl_fees?: number | null
+          cl_points_amount?: number | null
+          cl_points_pct?: number | null
+          cl_rebate_pct?: number | null
+          coe_date?: string | null
           created_at?: string
           down_payment?: number | null
+          escrow_fees?: number | null
+          exit_strategy?: string | null
+          funding_source?: string | null
           ghl_opportunity_id?: string | null
+          guc_plans?: string | null
+          hoa_annual?: number | null
+          hold_back_amount?: number | null
           id?: string
+          if_yes_terms_offered?: string | null
+          initial_release_amount?: number | null
+          inspection_fees?: number | null
+          insurance_annual?: number | null
+          insurance_fee?: number | null
           interest_rate?: number | null
+          investor_fees?: number | null
+          investor_points_pct?: number | null
           lender_name?: string | null
           loan_amount?: number | null
           loan_number?: string | null
+          loan_program?: string | null
           loan_purpose?: string | null
+          loan_term?: string | null
           loan_term_months?: number | null
           loan_type?: string | null
           ltv?: number | null
+          ltv_ltarv?: string | null
           maturity_date?: string | null
+          misc_fee?: number | null
+          monthly_payment?: number | null
           origination_fee?: number | null
           points?: number | null
           purchase_price?: number | null
+          rate_pct?: number | null
+          referral_points_or_fees?: number | null
+          refi_cashout?: number | null
+          refi_payoff?: number | null
           stage?: string
+          taxes_annual?: number | null
+          term_sheet?: string | null
+          title_fees?: number | null
+          total_points_and_fees?: number | null
+          total_points_pct?: number | null
+          total_third_party_fees?: number | null
           updated_at?: string
+          working_with_another_lender?: string | null
         }
         Relationships: []
       }
