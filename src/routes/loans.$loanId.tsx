@@ -346,7 +346,25 @@ function DealDetail() {
 
                 <div className="grid grid-cols-1 xl:grid-cols-[1fr_460px] gap-6 p-6">
                   <div className="min-w-0">
-                    {tab === "loan" && <LoanInfoForm loan={loan} downPayment={downPayment} downPct={downPct} />}
+                    {tab === "loan" && (
+                      <LoanInfoForm
+                        purchasePrice={purchasePrice}
+                        appraisedValue={appraisedValue}
+                        baseLoanAmount={baseLoanAmount}
+                        noteRate={noteRate}
+                        termMonths={termMonths}
+                        downPayment={downPayment}
+                        downPct={downPct}
+                        ltv={ltv}
+                        onPurchasePriceChange={setPurchasePrice}
+                        onAppraisedValueChange={setAppraisedValue}
+                        onBaseLoanChange={setBaseLoanAmount}
+                        onDownPaymentChange={onDownPaymentChange}
+                        onLtvChange={onLtvChange}
+                        onNoteRateChange={setNoteRate}
+                        onTermChange={setTermMonths}
+                      />
+                    )}
                     {tab === "property" && <PropertyInfoForm loan={loan} />}
                     {tab === "title" && <TitleInfoForm />}
                   </div>
