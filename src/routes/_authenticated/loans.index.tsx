@@ -19,7 +19,7 @@ function isStageGroupTab(value: Tab): value is StageGroup {
   return value !== "All";
 }
 
-export const Route = createFileRoute("/_authenticated/loans")({
+export const Route = createFileRoute("/_authenticated/loans/")({
   validateSearch: (s: Record<string, unknown>) => ({
     tab: isTab(s.tab) ? s.tab : "All",
   }),
